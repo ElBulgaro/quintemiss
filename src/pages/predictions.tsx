@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -18,15 +18,35 @@ import { CandidateCard } from "@/components/CandidateCard";
 import { candidates } from "@/data/candidates";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from 'uuid';
+
+// Helper function to get or create visitor ID
+const getVisitorId = () => {
+  let visitorId = localStorage.getItem('visitorId');
+  if (!visitorId) {
+    visitorId = uuidv4();
+    localStorage.setItem('visitorId', visitorId);
+  }
+  return visitorId;
+};
 
 export default function Predictions() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Load saved predictions from localStorage on component mount
+  useEffect(() => {
+    const savedPredictions = localStorage.getItem('predictions');
+    if (savedPredictions) {
+      setSelectedCandidates(JSON.parse(savedPredictions));
+    }
+  }, []);
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -50,13 +70,34 @@ export default function Predictions() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedCandidates.length !== 5) {
       toast.error("Veuillez sélectionner exactement 5 candidates");
       return;
     }
-    // TODO: Implement submission logic
-    toast.success("Vos prédictions ont été enregistrées");
+
+    setIsSubmitting(true);
+    try {
+      // Save to localStorage
+      localStorage.setItem('predictions', JSON.stringify(selectedCandidates));
+
+      // Prepare prediction data
+      const predictionData = {
+        visitorId: getVisitorId(),
+        predictions: selectedCandidates,
+        submittedAt: new Date().toISOString(),
+      };
+
+      // Log the prediction data (for now)
+      console.log('Saving prediction:', predictionData);
+
+      toast.success("Vos prédictions ont été enregistrées");
+    } catch (error) {
+      console.error('Error saving predictions:', error);
+      toast.error("Une erreur est survenue lors de l'enregistrement");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -110,9 +151,9 @@ export default function Predictions() {
             <Button
               onClick={handleSubmit}
               className="w-full mt-6"
-              disabled={selectedCandidates.length !== 5}
+              disabled={selectedCandidates.length !== 5 || isSubmitting}
             >
-              Valider mes prédictions
+              {isSubmitting ? "Enregistrement..." : "Valider mes prédictions"}
             </Button>
           </div>
 
