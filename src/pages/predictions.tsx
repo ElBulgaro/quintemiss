@@ -19,6 +19,8 @@ import { candidates } from "@/data/candidates";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
+import { LayoutGrid, List } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 // Helper function to get or create visitor ID
 const getVisitorId = () => {
@@ -33,6 +35,7 @@ const getVisitorId = () => {
 export default function Predictions() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -40,7 +43,6 @@ export default function Predictions() {
     })
   );
 
-  // Load saved predictions from localStorage on component mount
   useEffect(() => {
     const savedPredictions = localStorage.getItem('predictions');
     if (savedPredictions) {
@@ -159,18 +161,58 @@ export default function Predictions() {
 
           {/* Available Candidates */}
           <div className="glass-card p-6 rounded-lg">
-            <h2 className="text-2xl font-bold text-rich-black mb-4">Candidates</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-rich-black">Candidates</h2>
+              <div className="flex gap-2">
+                <Toggle
+                  pressed={viewMode === 'grid'}
+                  onPressedChange={() => setViewMode('grid')}
+                  aria-label="Grid view"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Toggle>
+                <Toggle
+                  pressed={viewMode === 'list'}
+                  onPressedChange={() => setViewMode('list')}
+                  aria-label="List view"
+                >
+                  <List className="h-4 w-4" />
+                </Toggle>
+              </div>
+            </div>
+            <div className={`${
+              viewMode === 'grid' 
+                ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' 
+                : 'flex flex-col gap-4'
+            } max-h-[600px] overflow-y-auto`}>
               {candidates.map((candidate) => (
                 <div
                   key={candidate.id}
                   className="cursor-pointer"
                   onClick={() => handleCandidateSelect(candidate.id)}
                 >
-                  <CandidateCard
-                    {...candidate}
-                    selected={selectedCandidates.includes(candidate.id)}
-                  />
+                  {viewMode === 'grid' ? (
+                    <CandidateCard
+                      {...candidate}
+                      selected={selectedCandidates.includes(candidate.id)}
+                    />
+                  ) : (
+                    <div className={`flex items-center gap-4 p-4 rounded-lg ${
+                      selectedCandidates.includes(candidate.id)
+                        ? 'bg-gold/10 border-gold'
+                        : 'bg-white/50 border-white/20'
+                    } border shadow-sm hover:shadow-md transition-all`}>
+                      <img
+                        src={candidate.image}
+                        alt={candidate.name}
+                        className="w-16 h-16 object-cover rounded-full"
+                      />
+                      <div>
+                        <h3 className="font-medium text-rich-black">{candidate.name}</h3>
+                        <p className="text-sm text-rich-black/60">{candidate.region}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
