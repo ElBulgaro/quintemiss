@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Check } from "lucide-react";
 
 interface CandidateCardProps {
   id: string;
@@ -8,9 +9,10 @@ interface CandidateCardProps {
   region: string;
   image: string;
   bio: string;
+  selected?: boolean;
 }
 
-export function CandidateCard({ name, age, region, image, bio }: CandidateCardProps) {
+export function CandidateCard({ name, age, region, image, bio, selected }: CandidateCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -18,7 +20,9 @@ export function CandidateCard({ name, age, region, image, bio }: CandidateCardPr
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="glass-card rounded-lg overflow-hidden hover-lift"
+      className={`glass-card rounded-lg overflow-hidden hover-lift relative ${
+        selected ? "ring-2 ring-gold" : ""
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -36,6 +40,11 @@ export function CandidateCard({ name, age, region, image, bio }: CandidateCardPr
           <h3 className="font-playfair text-xl font-semibold">{name}</h3>
           <p className="text-sm opacity-90">{region}</p>
         </div>
+        {selected && (
+          <div className="absolute top-2 right-2 bg-gold rounded-full p-1">
+            <Check className="h-4 w-4 text-white" />
+          </div>
+        )}
       </div>
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
