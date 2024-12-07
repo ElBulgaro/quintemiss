@@ -14,15 +14,13 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { SortableCandidate } from "@/components/SortableCandidate";
-import { CandidateCard } from "@/components/CandidateCard";
 import { candidates } from "@/data/candidates";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
-import { LayoutGrid, List } from "lucide-react";
-import { Toggle } from "@/components/ui/toggle";
+import { ViewToggle } from "@/components/ViewToggle";
+import { CandidatesView } from "@/components/CandidatesView";
 
-// Helper function to get or create visitor ID
 const getVisitorId = () => {
   let visitorId = localStorage.getItem('visitorId');
   if (!visitorId) {
@@ -35,7 +33,8 @@ const getVisitorId = () => {
 export default function Predictions() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid-2' | 'grid-3' | 'list'>('grid-2');
+  
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -52,7 +51,6 @@ export default function Predictions() {
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
-
     if (active.id !== over.id) {
       setSelectedCandidates((items) => {
         const oldIndex = items.indexOf(active.id);
@@ -80,19 +78,15 @@ export default function Predictions() {
 
     setIsSubmitting(true);
     try {
-      // Save to localStorage
       localStorage.setItem('predictions', JSON.stringify(selectedCandidates));
-
-      // Prepare prediction data
+      
       const predictionData = {
         visitorId: getVisitorId(),
         predictions: selectedCandidates,
         submittedAt: new Date().toISOString(),
       };
 
-      // Log the prediction data (for now)
       console.log('Saving prediction:', predictionData);
-
       toast.success("Vos prédictions ont été enregistrées");
     } catch (error) {
       console.error('Error saving predictions:', error);
@@ -163,58 +157,15 @@ export default function Predictions() {
           <div className="glass-card p-6 rounded-lg">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-rich-black">Candidates</h2>
-              <div className="flex gap-2">
-                <Toggle
-                  pressed={viewMode === 'grid'}
-                  onPressedChange={() => setViewMode('grid')}
-                  aria-label="Grid view"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Toggle>
-                <Toggle
-                  pressed={viewMode === 'list'}
-                  onPressedChange={() => setViewMode('list')}
-                  aria-label="List view"
-                >
-                  <List className="h-4 w-4" />
-                </Toggle>
-              </div>
+              <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
             </div>
-            <div className={`${
-              viewMode === 'grid' 
-                ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' 
-                : 'flex flex-col gap-4'
-            } max-h-[600px] overflow-y-auto`}>
-              {candidates.map((candidate) => (
-                <div
-                  key={candidate.id}
-                  className="cursor-pointer"
-                  onClick={() => handleCandidateSelect(candidate.id)}
-                >
-                  {viewMode === 'grid' ? (
-                    <CandidateCard
-                      {...candidate}
-                      selected={selectedCandidates.includes(candidate.id)}
-                    />
-                  ) : (
-                    <div className={`flex items-center gap-4 p-4 rounded-lg ${
-                      selectedCandidates.includes(candidate.id)
-                        ? 'bg-gold/10 border-gold'
-                        : 'bg-white/50 border-white/20'
-                    } border shadow-sm hover:shadow-md transition-all`}>
-                      <img
-                        src={candidate.image}
-                        alt={candidate.name}
-                        className="w-16 h-16 object-cover rounded-full"
-                      />
-                      <div>
-                        <h3 className="font-medium text-rich-black">{candidate.name}</h3>
-                        <p className="text-sm text-rich-black/60">{candidate.region}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="max-h-[600px] overflow-y-auto">
+              <CandidatesView
+                candidates={candidates}
+                viewMode={viewMode}
+                selectedCandidates={selectedCandidates}
+                onCandidateSelect={handleCandidateSelect}
+              />
             </div>
           </div>
         </div>
