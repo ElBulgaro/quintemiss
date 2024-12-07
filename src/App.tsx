@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
 import Predictions from "./pages/predictions";
+import AdminCandidates from "./pages/admin/candidates";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/predictions" element={<Predictions />} />
+            <Route path="/admin/candidates" element={<AdminCandidates />} />
           </Routes>
         </AnimatePresence>
       </BrowserRouter>

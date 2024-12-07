@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  // Temporary mock admin state - you'll need to integrate this with your auth system
+  const isAdmin = true;
 
   return (
     <nav className="fixed w-full bg-white/80 backdrop-blur-sm border-b z-50">
@@ -27,6 +29,11 @@ export function Navigation() {
             <Link to="/leaderboard" className="text-rich-black/80 hover:text-rich-black transition-colors">
               Leaderboard
             </Link>
+            {isAdmin && (
+              <Link to="/admin/candidates" className="text-rich-black/80 hover:text-rich-black transition-colors">
+                Admin
+              </Link>
+            )}
             <Button variant="outline" size="sm" className="hover-lift">
               <User className="h-4 w-4 mr-2" />
               Sign In
@@ -74,6 +81,15 @@ export function Navigation() {
             >
               Leaderboard
             </Link>
+            {isAdmin && (
+              <Link
+                to="/admin/candidates"
+                className="block px-3 py-2 text-rich-black/80 hover:text-rich-black transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Admin
+              </Link>
+            )}
             <div className="px-3 py-2">
               <Button variant="outline" size="sm" className="w-full">
                 <User className="h-4 w-4 mr-2" />
