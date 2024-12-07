@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
 import { ViewToggle } from "@/components/ViewToggle";
 import { CandidatesView } from "@/components/CandidatesView";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const getVisitorId = () => {
   let visitorId = localStorage.getItem('visitorId');
@@ -31,10 +33,35 @@ const getVisitorId = () => {
 };
 
 export default function Predictions() {
+  const navigate = useNavigate();
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid-2' | 'grid-3' | 'list'>('grid-2');
   
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please sign in to make predictions");
+        navigate("/login");
+      }
+    };
+    
+    checkAuth();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate("/login");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -78,15 +105,26 @@ export default function Predictions() {
 
     setIsSubmitting(true);
     try {
-      localStorage.setItem('predictions', JSON.stringify(selectedCandidates));
+      const { data: { user } } = await supabase.auth.getUser();
       
-      const predictionData = {
-        visitorId: getVisitorId(),
-        predictions: selectedCandidates,
-        submittedAt: new Date().toISOString(),
-      };
+      if (!user) {
+        toast.error("Please sign in to save predictions");
+        navigate("/login");
+        return;
+      }
 
-      console.log('Saving prediction:', predictionData);
+      // Save predictions to Supabase (we'll implement this table later)
+      const { error } = await supabase
+        .from('predictions')
+        .upsert({
+          user_id: user.id,
+          predictions: selectedCandidates,
+          submitted_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+      
+      localStorage.setItem('predictions', JSON.stringify(selectedCandidates));
       toast.success("Vos prédictions ont été enregistrées");
     } catch (error) {
       console.error('Error saving predictions:', error);
