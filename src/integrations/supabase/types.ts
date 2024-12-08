@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      official_results: {
+        Row: {
+          created_at: string
+          final_ranking: string[]
+          id: string
+          semi_finalists: string[]
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          final_ranking: string[]
+          id?: string
+          semi_finalists: string[]
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          final_ranking?: string[]
+          id?: string
+          semi_finalists?: string[]
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       predictions: {
         Row: {
           created_at: string
@@ -42,6 +69,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_admin: boolean | null
           updated_at: string
           username: string | null
         }
@@ -50,6 +78,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          is_admin?: boolean | null
           updated_at?: string
           username?: string | null
         }
@@ -58,6 +87,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_admin?: boolean | null
           updated_at?: string
           username?: string | null
         }
