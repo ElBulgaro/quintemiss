@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -9,14 +9,39 @@ import { AlertCircle } from "lucide-react";
 export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [enabledProviders, setEnabledProviders] = useState<string[]>([]);
 
   useEffect(() => {
+    // Check which providers are enabled
+    const checkEnabledProviders = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error checking auth session:', error);
+          return;
+        }
+
+        // Get list of configured providers from Supabase
+        const settings = await supabase.auth.getSettings();
+        const providers = ['google', 'github'];
+        const enabled = providers.filter(provider => 
+          settings.data.config?.external?.providers?.includes(provider)
+        );
+        
+        setEnabledProviders(enabled);
+      } catch (error) {
+        console.error('Error checking providers:', error);
+      }
+    };
+
+    checkEnabledProviders();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         navigate("/predictions");
       }
       
-      if (event === 'USER_ERROR') {
+      if (event === "USER_ERROR" as any) {
         console.log('Auth error event:', event); // Debug log
         
         toast({
@@ -64,7 +89,7 @@ export default function Login() {
                 },
               },
             }}
-            providers={["google", "github"]}
+            providers={enabledProviders}
             redirectTo={window.location.origin}
             magicLink={true}
             showLinks={true}
