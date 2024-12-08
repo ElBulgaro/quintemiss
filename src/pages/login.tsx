@@ -47,7 +47,6 @@ export default function Login() {
             }}
             providers={[]}
             redirectTo={window.location.origin}
-            emailRedirectTo={window.location.origin}
             onlyThirdPartyProviders={false}
             magicLink={false}
             showLinks={true}
