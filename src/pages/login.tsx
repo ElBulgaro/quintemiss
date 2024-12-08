@@ -4,6 +4,7 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { AlertCircle } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -15,20 +16,28 @@ export default function Login() {
         navigate("/predictions");
       }
       
-      // Handle provider errors
       if (event === 'SIGNED_OUT') {
         console.log('Auth event:', event);
       }
     });
 
-    // Listen for auth errors
+    // Enhanced error handling for provider errors
     window.addEventListener('supabase.auth.error', (e) => {
       const error = (e as CustomEvent).detail;
-      if (error?.message?.includes('Provider')) {
+      console.log('Auth error:', error); // Debug log
+      
+      if (error?.error_description?.includes('provider is not enabled') || 
+          error?.msg?.includes('provider is not enabled')) {
         toast({
-          title: "Provider Not Configured",
-          description: "This login method is not available yet. Please use email/password or try another provider.",
           variant: "destructive",
+          title: (
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              <span>Authentication Provider Not Available</span>
+            </div>
+          ),
+          description: "This login method hasn't been configured yet. Please use email/password or try another provider.",
+          duration: 5000,
         });
       }
     });
