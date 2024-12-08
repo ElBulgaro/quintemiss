@@ -46,6 +46,24 @@ export default function Login() {
               },
             }}
             providers={[]}
+            redirectTo={window.location.origin}
+            emailRedirectTo={window.location.origin}
+            onlyThirdPartyProviders={false}
+            magicLink={false}
+            showLinks={true}
+            view="sign_in"
+            localization={{
+              variables: {
+                sign_up: {
+                  email_label: 'Email',
+                  password_label: 'Password',
+                  button_label: 'Sign up',
+                  loading_button_label: 'Signing up ...',
+                  social_provider_text: 'Sign in with {{provider}}',
+                  link_text: "Don't have an account? Sign up",
+                },
+              },
+            }}
           />
         </div>
       </div>
