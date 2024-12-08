@@ -16,21 +16,12 @@ export default function Login() {
         navigate("/predictions");
       }
       
-      if (event === 'SIGNED_OUT') {
-        console.log('Auth event:', event);
-      }
-    });
-
-    // Enhanced error handling for provider errors
-    const handleError = (error: any) => {
-      console.log('Auth error:', error); // Debug log
-      
-      if (error?.error_description?.includes('provider is not enabled') || 
-          error?.message?.includes('provider is not enabled') ||
-          error?.msg?.includes('provider is not enabled')) {
+      if (event === 'USER_ERROR') {
+        console.log('Auth error event:', event); // Debug log
+        
         toast({
           variant: "destructive",
-          title: "Authentication Provider Not Available",
+          title: "Authentication Error",
           description: (
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
@@ -40,16 +31,10 @@ export default function Login() {
           duration: 5000,
         });
       }
-    };
-
-    // Listen for auth errors from Supabase
-    const {
-      data: { subscription: errorSubscription },
-    } = supabase.auth.onError(handleError);
+    });
 
     return () => {
       subscription.unsubscribe();
-      errorSubscription?.unsubscribe();
     };
   }, [navigate, toast]);
 
