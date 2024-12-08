@@ -5,11 +5,12 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertCircle } from "lucide-react";
+import { Provider } from "@supabase/supabase-js";
 
 export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [enabledProviders, setEnabledProviders] = useState<string[]>([]);
+  const [enabledProviders, setEnabledProviders] = useState<Provider[]>([]);
 
   useEffect(() => {
     // Check which providers are enabled
@@ -21,14 +22,25 @@ export default function Login() {
           return;
         }
 
-        // Get list of configured providers from Supabase
-        const settings = await supabase.auth.getSettings();
-        const providers = ['google', 'github'];
-        const enabled = providers.filter(provider => 
-          settings.data.config?.external?.providers?.includes(provider)
-        );
+        // Since getSettings is not available, we'll try to sign in with each provider
+        // to check if they're configured
+        const providers: Provider[] = [];
         
-        setEnabledProviders(enabled);
+        try {
+          await supabase.auth.signInWithOAuth({ provider: 'google' });
+          providers.push('google');
+        } catch (error) {
+          console.log('Google auth not configured');
+        }
+        
+        try {
+          await supabase.auth.signInWithOAuth({ provider: 'github' });
+          providers.push('github');
+        } catch (error) {
+          console.log('GitHub auth not configured');
+        }
+        
+        setEnabledProviders(providers);
       } catch (error) {
         console.error('Error checking providers:', error);
       }
