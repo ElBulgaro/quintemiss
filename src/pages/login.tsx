@@ -22,11 +22,11 @@ export default function Login() {
     });
 
     // Enhanced error handling for provider errors
-    window.addEventListener('supabase.auth.error', (e) => {
-      const error = (e as CustomEvent).detail;
+    const handleError = (error: any) => {
       console.log('Auth error:', error); // Debug log
       
       if (error?.error_description?.includes('provider is not enabled') || 
+          error?.message?.includes('provider is not enabled') ||
           error?.msg?.includes('provider is not enabled')) {
         toast({
           variant: "destructive",
@@ -40,10 +40,16 @@ export default function Login() {
           duration: 5000,
         });
       }
-    });
+    };
+
+    // Listen for auth errors from Supabase
+    const {
+      data: { subscription: errorSubscription },
+    } = supabase.auth.onError(handleError);
 
     return () => {
       subscription.unsubscribe();
+      errorSubscription?.unsubscribe();
     };
   }, [navigate, toast]);
 
