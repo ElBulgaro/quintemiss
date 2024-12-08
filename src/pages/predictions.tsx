@@ -1,28 +1,11 @@
 import { useState, useEffect } from "react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { SortableCandidate } from "@/components/SortableCandidate";
-import { candidates } from "@/data/candidates";
-import { Button } from "@/components/ui/button";
+import { arrayMove } from "@dnd-kit/sortable";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ViewToggle } from "@/components/ViewToggle";
-import { CandidatesView } from "@/components/CandidatesView";
 import { usePredictionsStorage } from "@/hooks/use-predictions-storage";
-import { CountdownTimer } from "@/components/CountdownTimer";
+import { SelectedCandidates } from "@/components/predictions/SelectedCandidates";
+import { CandidatesList } from "@/components/predictions/CandidatesList";
 
 export default function Predictions() {
   const navigate = useNavigate();
@@ -32,7 +15,6 @@ export default function Predictions() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   useEffect(() => {
-    // Check authentication status without redirecting
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
@@ -40,7 +22,6 @@ export default function Predictions() {
     
     checkAuth();
 
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
     });
@@ -49,13 +30,6 @@ export default function Predictions() {
       subscription.unsubscribe();
     };
   }, []);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -84,7 +58,6 @@ export default function Predictions() {
       return;
     }
 
-    // Check if user is authenticated
     if (!isAuthenticated) {
       toast.error("Veuillez vous connecter pour sauvegarder vos prédictions", {
         action: {
@@ -139,64 +112,19 @@ export default function Predictions() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Selected Candidates */}
-          <div className="glass-card p-6 rounded-lg">
-            <h2 className="text-2xl font-bold text-rich-black mb-4">Votre Top 5</h2>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={selectedCandidates}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-4">
-                  {selectedCandidates.map((id, index) => {
-                    const candidate = candidates.find((c) => c.id === id);
-                    if (!candidate) return null;
-                    return (
-                      <SortableCandidate
-                        key={id}
-                        candidate={candidate}
-                        index={index}
-                        onRemove={() => handleCandidateSelect(id)}
-                      />
-                    );
-                  })}
-                </div>
-              </SortableContext>
-            </DndContext>
-            {selectedCandidates.length === 0 && (
-              <p className="text-center text-rich-black/60 py-8">
-                Sélectionnez des candidates dans la liste ci-contre
-              </p>
-            )}
-            <Button
-              onClick={handleSubmit}
-              className="w-full mt-6"
-              disabled={selectedCandidates.length !== 5 || isSubmitting}
-            >
-              {isSubmitting ? "Enregistrement..." : "Valider mes prédictions"}
-            </Button>
-            <CountdownTimer />
-          </div>
-
-          {/* Available Candidates */}
-          <div className="glass-card p-6 rounded-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-rich-black">Candidates</h2>
-              <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
-            </div>
-            <div className="max-h-[600px] overflow-y-auto">
-              <CandidatesView
-                candidates={candidates}
-                viewMode={viewMode}
-                selectedCandidates={selectedCandidates}
-                onCandidateSelect={handleCandidateSelect}
-              />
-            </div>
-          </div>
+          <SelectedCandidates
+            selectedCandidates={selectedCandidates}
+            onDragEnd={handleDragEnd}
+            onCandidateSelect={handleCandidateSelect}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+          />
+          <CandidatesList
+            viewMode={viewMode}
+            selectedCandidates={selectedCandidates}
+            onViewChange={setViewMode}
+            onCandidateSelect={handleCandidateSelect}
+          />
         </div>
       </div>
     </div>
