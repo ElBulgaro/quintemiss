@@ -30,13 +30,13 @@ export default function Login() {
           error?.msg?.includes('provider is not enabled')) {
         toast({
           variant: "destructive",
-          title: (
+          title: "Authentication Provider Not Available",
+          description: (
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
-              <span>Authentication Provider Not Available</span>
+              <span>This login method hasn't been configured yet. Please use email/password or try another provider.</span>
             </div>
           ),
-          description: "This login method hasn't been configured yet. Please use email/password or try another provider.",
           duration: 5000,
         });
       }
