@@ -1,53 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertCircle } from "lucide-react";
-import { Provider } from "@supabase/supabase-js";
 
 export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [enabledProviders, setEnabledProviders] = useState<Provider[]>([]);
 
   useEffect(() => {
-    // Check which providers are enabled
-    const checkEnabledProviders = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error checking auth session:', error);
-          return;
-        }
-
-        // Since getSettings is not available, we'll try to sign in with each provider
-        // to check if they're configured
-        const providers: Provider[] = [];
-        
-        try {
-          await supabase.auth.signInWithOAuth({ provider: 'google' });
-          providers.push('google');
-        } catch (error) {
-          console.log('Google auth not configured');
-        }
-        
-        try {
-          await supabase.auth.signInWithOAuth({ provider: 'github' });
-          providers.push('github');
-        } catch (error) {
-          console.log('GitHub auth not configured');
-        }
-        
-        setEnabledProviders(providers);
-      } catch (error) {
-        console.error('Error checking providers:', error);
-      }
-    };
-
-    checkEnabledProviders();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         navigate("/predictions");
@@ -62,7 +25,7 @@ export default function Login() {
           description: (
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
-              <span>This login method hasn't been configured yet. Please use email/password or try another provider.</span>
+              <span>An error occurred during authentication. Please try again.</span>
             </div>
           ),
           duration: 5000,
@@ -101,7 +64,7 @@ export default function Login() {
                 },
               },
             }}
-            providers={enabledProviders}
+            providers={[]}
             redirectTo={window.location.origin}
             magicLink={true}
             showLinks={true}
