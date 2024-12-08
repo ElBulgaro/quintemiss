@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { candidates } from "@/data/candidates";
 import { CandidateForm } from "@/components/admin/CandidateForm";
+import { SemiFinalistSelection } from "@/components/admin/SemiFinalistSelection";
+import { FinalRankingSelection } from "@/components/admin/FinalRankingSelection";
 import {
   Dialog,
   DialogContent,
@@ -79,18 +81,6 @@ export default function AdminCandidates() {
     );
   };
 
-  const toggleFinalRanking = (candidateId: string) => {
-    setFinalRanking(prev => {
-      if (prev.includes(candidateId)) {
-        return prev.filter(id => id !== candidateId);
-      }
-      if (prev.length < 5) {
-        return [...prev, candidateId];
-      }
-      return prev;
-    });
-  };
-
   return (
     <div className="container mx-auto py-24 px-4">
       <Tabs defaultValue="candidates" className="space-y-6">
@@ -154,86 +144,23 @@ export default function AdminCandidates() {
         </TabsContent>
 
         <TabsContent value="results">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-playfair font-bold mb-4">Semi-Finalists</h2>
-              <p className="text-muted-foreground mb-4">Select the semi-finalists by clicking on their cards:</p>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {candidates.map((candidate) => (
-                  <Card 
-                    key={candidate.id}
-                    className={`cursor-pointer transition-colors ${
-                      semiFinalists.includes(candidate.id) ? 'border-primary' : ''
-                    }`}
-                    onClick={() => toggleSemiFinalist(candidate.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={candidate.image}
-                          alt={candidate.name}
-                          className="h-12 w-12 object-cover rounded-full"
-                        />
-                        <div>
-                          <h3 className="font-semibold">{candidate.name}</h3>
-                          <p className="text-sm text-muted-foreground">{candidate.region}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
+          <div className="space-y-12">
+            <SemiFinalistSelection
+              candidates={candidates}
+              semiFinalists={semiFinalists}
+              onToggleSemiFinalist={toggleSemiFinalist}
+            />
 
-            <div>
-              <h2 className="text-2xl font-playfair font-bold mb-4">Final Ranking (Top 5)</h2>
-              <p className="text-muted-foreground mb-4">Select the top 5 candidates in order:</p>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {candidates.map((candidate) => (
-                  <Card 
-                    key={candidate.id}
-                    className={`cursor-pointer transition-colors ${
-                      finalRanking.includes(candidate.id) 
-                        ? 'border-primary' 
-                        : ''
-                    }`}
-                    onClick={() => toggleFinalRanking(candidate.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
-                          {finalRanking.includes(candidate.id) && (
-                            <span className="text-lg font-bold">
-                              {finalRanking.indexOf(candidate.id) + 1}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <img
-                            src={candidate.image}
-                            alt={candidate.name}
-                            className="h-12 w-12 object-cover rounded-full"
-                          />
-                          <div>
-                            <h3 className="font-semibold">{candidate.name}</h3>
-                            <p className="text-sm text-muted-foreground">{candidate.region}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <Button 
-                onClick={handleSaveResults}
-                disabled={isSaving || finalRanking.length !== 5}
-              >
-                {isSaving ? "Saving..." : "Save Official Results"}
-              </Button>
-            </div>
+            {semiFinalists.length === 15 && (
+              <FinalRankingSelection
+                candidates={candidates}
+                semiFinalists={semiFinalists}
+                finalRanking={finalRanking}
+                onUpdateFinalRanking={setFinalRanking}
+                onSaveResults={handleSaveResults}
+                isSaving={isSaving}
+              />
+            )}
           </div>
         </TabsContent>
       </Tabs>
