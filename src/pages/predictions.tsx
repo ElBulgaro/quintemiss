@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ViewToggle } from "@/components/ViewToggle";
 import { CandidatesView } from "@/components/CandidatesView";
 import { usePredictionsStorage } from "@/hooks/use-predictions-storage";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 export default function Predictions() {
   const navigate = useNavigate();
@@ -178,6 +179,7 @@ export default function Predictions() {
             >
               {isSubmitting ? "Enregistrement..." : "Valider mes prédictions"}
             </Button>
+            <CountdownTimer />
           </div>
 
           {/* Available Candidates */}
