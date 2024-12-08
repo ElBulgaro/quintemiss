@@ -37,30 +37,26 @@ export default function Predictions() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid-2' | 'grid-3' | 'list'>('grid-2');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   useEffect(() => {
-    // Check authentication status
+    // Check authentication status without redirecting
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Please sign in to make predictions");
-        navigate("/login");
-      }
+      setIsAuthenticated(!!session);
     };
     
     checkAuth();
 
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        navigate("/login");
-      }
+      setIsAuthenticated(!!session);
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -103,17 +99,27 @@ export default function Predictions() {
       return;
     }
 
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast.error("Veuillez vous connecter pour sauvegarder vos prédictions", {
+        action: {
+          label: "Se connecter",
+          onClick: () => navigate("/login"),
+        },
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast.error("Please sign in to save predictions");
+        toast.error("Une erreur est survenue, veuillez vous reconnecter");
         navigate("/login");
         return;
       }
 
-      // Save predictions to Supabase (we'll implement this table later)
       const { error } = await supabase
         .from('predictions')
         .upsert({
