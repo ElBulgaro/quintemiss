@@ -16,7 +16,7 @@ export default function Login() {
       }
       
       // Handle provider errors
-      if (event === 'USER_DELETED' || event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT') {
         console.log('Auth event:', event);
       }
     });
