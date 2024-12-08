@@ -45,10 +45,9 @@ export default function Login() {
                 },
               },
             }}
-            providers={[]}
+            providers={["google", "github"]}
             redirectTo={window.location.origin}
-            onlyThirdPartyProviders={false}
-            magicLink={false}
+            magicLink={true}
             showLinks={true}
             view="sign_in"
             localization={{
