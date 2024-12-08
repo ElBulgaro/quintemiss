@@ -17,24 +17,15 @@ import { SortableCandidate } from "@/components/SortableCandidate";
 import { candidates } from "@/data/candidates";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from 'uuid';
-import { ViewToggle } from "@/components/ViewToggle";
-import { CandidatesView } from "@/components/CandidatesView";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
-const getVisitorId = () => {
-  let visitorId = localStorage.getItem('visitorId');
-  if (!visitorId) {
-    visitorId = uuidv4();
-    localStorage.setItem('visitorId', visitorId);
-  }
-  return visitorId;
-};
+import { ViewToggle } from "@/components/ViewToggle";
+import { CandidatesView } from "@/components/CandidatesView";
+import { usePredictionsStorage } from "@/hooks/use-predictions-storage";
 
 export default function Predictions() {
   const navigate = useNavigate();
-  const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
+  const { selectedCandidates, updatePredictions } = usePredictionsStorage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid-2' | 'grid-3' | 'list'>('grid-2');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -65,29 +56,22 @@ export default function Predictions() {
     })
   );
 
-  useEffect(() => {
-    const savedPredictions = localStorage.getItem('predictions');
-    if (savedPredictions) {
-      setSelectedCandidates(JSON.parse(savedPredictions));
-    }
-  }, []);
-
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over.id) {
-      setSelectedCandidates((items) => {
-        const oldIndex = items.indexOf(active.id);
-        const newIndex = items.indexOf(over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const items = [...selectedCandidates];
+      const oldIndex = items.indexOf(active.id);
+      const newIndex = items.indexOf(over.id);
+      const newOrder = arrayMove(items, oldIndex, newIndex);
+      updatePredictions(newOrder);
     }
   };
 
   const handleCandidateSelect = (candidateId: string) => {
     if (selectedCandidates.includes(candidateId)) {
-      setSelectedCandidates(selectedCandidates.filter((id) => id !== candidateId));
+      updatePredictions(selectedCandidates.filter((id) => id !== candidateId));
     } else if (selectedCandidates.length < 5) {
-      setSelectedCandidates([...selectedCandidates, candidateId]);
+      updatePredictions([...selectedCandidates, candidateId]);
     } else {
       toast.error("Vous ne pouvez sélectionner que 5 candidates");
     }
@@ -130,7 +114,6 @@ export default function Predictions() {
 
       if (error) throw error;
       
-      localStorage.setItem('predictions', JSON.stringify(selectedCandidates));
       toast.success("Vos prédictions ont été enregistrées");
     } catch (error) {
       console.error('Error saving predictions:', error);
