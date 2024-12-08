@@ -3,21 +3,40 @@ import { useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         navigate("/predictions");
       }
+      
+      // Handle provider errors
+      if (event === 'USER_DELETED' || event === 'SIGNED_OUT') {
+        console.log('Auth event:', event);
+      }
+    });
+
+    // Listen for auth errors
+    window.addEventListener('supabase.auth.error', (e) => {
+      const error = (e as CustomEvent).detail;
+      if (error?.message?.includes('Provider')) {
+        toast({
+          title: "Provider Not Configured",
+          description: "This login method is not available yet. Please use email/password or try another provider.",
+          variant: "destructive",
+        });
+      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   return (
     <div className="min-h-screen bg-cream pt-24 pb-16">
