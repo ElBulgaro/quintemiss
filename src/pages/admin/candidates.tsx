@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { candidates } from "@/data/candidates";
 import { CandidateForm } from "@/components/admin/CandidateForm";
 import { CandidateImport } from "@/components/admin/CandidateImport";
+import { CandidateList } from "@/components/admin/CandidateList";
 import { SemiFinalistSelection } from "@/components/admin/SemiFinalistSelection";
 import { FinalRankingSelection } from "@/components/admin/FinalRankingSelection";
 import {
@@ -74,18 +74,9 @@ export default function AdminCandidates() {
     }
   };
 
-  const toggleSemiFinalist = (candidateId: string) => {
-    setSemiFinalists(prev => 
-      prev.includes(candidateId)
-        ? prev.filter(id => id !== candidateId)
-        : [...prev, candidateId]
-    );
-  };
-
   const handleImportConfirm = (importedCandidates: any[]) => {
     console.log("Imported candidates:", importedCandidates);
     toast.success("Candidates imported successfully!");
-    // Here you would typically update your data source with the imported candidates
   };
 
   return (
@@ -106,49 +97,17 @@ export default function AdminCandidates() {
             </Button>
           </div>
 
-          <div className="grid gap-4">
-            {candidates.map((candidate) => (
-              <Card key={candidate.id}>
-                <CardContent className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={candidate.image}
-                      alt={candidate.name}
-                      className="h-16 w-16 object-cover rounded-full"
-                    />
-                    <div>
-                      <h3 className="font-semibold">{candidate.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {candidate.region} • {candidate.age} ans
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCandidate(candidate);
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCandidate(candidate);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <CandidateList
+            candidates={candidates}
+            onEdit={(candidate) => {
+              setSelectedCandidate(candidate);
+              setIsEditDialogOpen(true);
+            }}
+            onDelete={(candidate) => {
+              setSelectedCandidate(candidate);
+              setIsDeleteDialogOpen(true);
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="import">
@@ -163,7 +122,9 @@ export default function AdminCandidates() {
             <SemiFinalistSelection
               candidates={candidates}
               semiFinalists={semiFinalists}
-              onToggleSemiFinalist={toggleSemiFinalist}
+              onToggleSemiFinalist={(id) => setSemiFinalists(prev => 
+                prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+              )}
             />
 
             {semiFinalists.length === 15 && (
@@ -180,7 +141,7 @@ export default function AdminCandidates() {
         </TabsContent>
       </Tabs>
 
-      {/* Add Candidate Dialog */}
+      {/* Dialogs */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -193,7 +154,6 @@ export default function AdminCandidates() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Candidate Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -207,7 +167,6 @@ export default function AdminCandidates() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

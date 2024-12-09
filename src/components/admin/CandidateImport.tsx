@@ -10,11 +10,13 @@ interface CandidateImportProps {
 }
 
 interface ParsedCandidate {
-  "Nom Complet": string;
   "Région": string;
+  "Nom Complet": string;
+  "Bio": string;
+  "Age": string;
+  "Instagram": string;
+  "Photo URL (Costume)": string;
   "Photo URL (Maillot)": string;
-  "Photo URL (Officielle)"?: string;
-  "URL Portrait TF1"?: string;
 }
 
 export function CandidateImport({ onConfirm }: CandidateImportProps) {
@@ -41,12 +43,13 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
       id: (index + 1).toString(),
       name: candidate["Nom Complet"],
       region: candidate["Région"],
+      bio: candidate["Bio"],
+      age: parseInt(candidate["Age"]),
+      instagram: candidate["Instagram"],
       image: candidate["Photo URL (Maillot)"],
-      official_photo_url: candidate["Photo URL (Officielle)"] || null,
-      portrait_url: candidate["URL Portrait TF1"] || null,
-      age: 20, // Default age since it's not in the CSV
-      bio: "", // Empty bio since it's not in the CSV
-      socialMedia: {} // Empty social media since it's not in the CSV
+      official_photo_url: candidate["Photo URL (Costume)"],
+      portrait_url: null,
+      socialMedia: {}
     }));
 
     onConfirm(formattedCandidates);
@@ -85,16 +88,21 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
                       alt={candidate["Nom Complet"]}
                       className="w-full h-full object-cover"
                     />
-                    {candidate["Photo URL (Officielle)"] && (
-                      <div className="absolute top-2 right-2">
-                        <div className="bg-gold/20 backdrop-blur-sm text-xs px-2 py-1 rounded-full text-white">
-                          Official Photo Available
-                        </div>
-                      </div>
-                    )}
                   </div>
                   <h4 className="font-medium">{candidate["Nom Complet"]}</h4>
                   <p className="text-sm text-muted-foreground">{candidate["Région"]}</p>
+                  <p className="text-sm text-muted-foreground">{candidate["Age"]} ans</p>
+                  {candidate["Instagram"] && (
+                    <a 
+                      href={`https://instagram.com/${candidate["Instagram"].replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-500 hover:underline"
+                    >
+                      {candidate["Instagram"]}
+                    </a>
+                  )}
+                  <p className="text-sm line-clamp-3">{candidate["Bio"]}</p>
                 </div>
               </Card>
             ))}

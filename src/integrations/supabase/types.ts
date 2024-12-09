@@ -11,9 +11,12 @@ export type Database = {
     Tables: {
       candidates: {
         Row: {
+          age: number | null
+          bio: string | null
           created_at: string
           id: string
           image_url: string
+          instagram: string | null
           name: string
           official_photo_url: string | null
           portrait_url: string | null
@@ -21,9 +24,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          age?: number | null
+          bio?: string | null
           created_at?: string
           id?: string
           image_url: string
+          instagram?: string | null
           name: string
           official_photo_url?: string | null
           portrait_url?: string | null
@@ -31,9 +37,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          age?: number | null
+          bio?: string | null
           created_at?: string
           id?: string
           image_url?: string
+          instagram?: string | null
           name?: string
           official_photo_url?: string | null
           portrait_url?: string | null
