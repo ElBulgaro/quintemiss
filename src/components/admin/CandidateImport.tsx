@@ -44,7 +44,21 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
-      // First, format for database insertion
+      // First check if user is admin
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .single();
+
+      if (profileError) {
+        throw new Error("Couldn't verify admin status");
+      }
+
+      if (!profile?.is_admin) {
+        throw new Error("Only admins can import candidates");
+      }
+
+      // Format for database insertion
       const candidatesForDb = parsedData.map((candidate) => ({
         name: candidate["Nom Complet"],
         region: candidate["Région"],
@@ -63,6 +77,10 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
         .select();
 
       if (error) throw error;
+
+      if (!insertedCandidates) {
+        throw new Error("No candidates were returned after insertion");
+      }
 
       // Format for the onConfirm callback (matching Candidate type)
       const formattedCandidates: Candidate[] = insertedCandidates.map((candidate) => ({
@@ -86,7 +104,7 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
       setParsedData([]);
     } catch (error) {
       console.error('Error importing candidates:', error);
-      toast.error("Erreur lors de l'importation des candidates");
+      toast.error(error instanceof Error ? error.message : "Erreur lors de l'importation des candidates");
     } finally {
       setIsSubmitting(false);
     }
