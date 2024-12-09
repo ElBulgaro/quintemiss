@@ -13,7 +13,7 @@ export default function Login() {
 
   useEffect(() => {
     // Debug log for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event, 'Session:', session); // Debug log
       
       if (event === 'SIGNED_IN' && session) {
