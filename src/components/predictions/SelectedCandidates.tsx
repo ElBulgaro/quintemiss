@@ -2,7 +2,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { SortableCandidate } from "@/components/SortableCandidate";
-import { candidates } from "@/data/candidates";
+import type { Candidate } from "@/data/types";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
 interface SelectedCandidatesProps {
@@ -12,6 +12,7 @@ interface SelectedCandidatesProps {
   onSubmit: () => void;
   onClearData: () => void;
   isSubmitting: boolean;
+  candidates: Candidate[];
 }
 
 export const SelectedCandidates = ({

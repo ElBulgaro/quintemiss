@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X } from "lucide-react";
-import type { Candidate } from "@/data/candidates";
+import type { Candidate } from "@/data/types";
 
 interface SortableCandidateProps {
   candidate: Candidate;
@@ -39,7 +39,7 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
       <div className="flex-1 flex items-center gap-4">
         <div className="w-12 h-12 rounded-full overflow-hidden">
           <img
-            src={candidate.image}
+            src={candidate.image_url}
             alt={candidate.name}
             className="w-full h-full object-cover"
           />

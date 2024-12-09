@@ -71,7 +71,7 @@ export function SemiFinalistSelection({
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
                 <img
-                  src={candidate.image}
+                  src={candidate.image_url}
                   alt={candidate.name}
                   className="h-12 w-12 object-cover rounded-full"
                 />

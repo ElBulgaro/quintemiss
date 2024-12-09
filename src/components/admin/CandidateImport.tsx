@@ -82,24 +82,8 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
         throw new Error("No candidates were returned after insertion");
       }
 
-      // Format for the onConfirm callback (matching Candidate type)
-      const formattedCandidates: Candidate[] = insertedCandidates.map((candidate) => ({
-        id: candidate.id,
-        name: candidate.name,
-        region: candidate.region,
-        bio: candidate.bio || "",
-        age: candidate.age || 0,
-        instagram: candidate.instagram,
-        image: candidate.image_url, // Map image_url to image
-        official_photo_url: candidate.official_photo_url,
-        portrait_url: candidate.portrait_url,
-        socialMedia: {
-          instagram: candidate.instagram,
-        }
-      }));
-
       toast.success("Candidates importés avec succès dans la base de données");
-      onConfirm(formattedCandidates);
+      onConfirm(insertedCandidates);
       setIsPreviewMode(false);
       setParsedData([]);
     } catch (error) {
