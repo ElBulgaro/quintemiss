@@ -1,12 +1,37 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
   // Temporary mock admin state - you'll need to integrate this with your auth system
   const isAdmin = true;
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Déconnexion réussie");
+      navigate("/");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast.error("Erreur lors de la déconnexion");
+    }
+  };
 
   return (
     <nav className="fixed w-full bg-white/80 backdrop-blur-sm border-b z-50">
@@ -34,10 +59,17 @@ export function Navigation() {
                 Admin
               </Link>
             )}
-            <Button variant="outline" size="sm" className="hover-lift">
-              <User className="h-4 w-4 mr-2" />
-              Sign In
-            </Button>
+            {isAuthenticated ? (
+              <Button variant="outline" size="sm" className="hover-lift" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Se déconnecter
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" className="hover-lift" onClick={() => navigate("/login")}>
+                <User className="h-4 w-4 mr-2" />
+                Se connecter
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -91,10 +123,17 @@ export function Navigation() {
               </Link>
             )}
             <div className="px-3 py-2">
-              <Button variant="outline" size="sm" className="w-full">
-                <User className="h-4 w-4 mr-2" />
-                Sign In
-              </Button>
+              {isAuthenticated ? (
+                <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Se déconnecter
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate("/login")}>
+                  <User className="h-4 w-4 mr-2" />
+                  Se connecter
+                </Button>
+              )}
             </div>
           </div>
         </div>
