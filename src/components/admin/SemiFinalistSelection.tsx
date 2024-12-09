@@ -28,11 +28,18 @@ export function SemiFinalistSelection({
 
   const saveResults = async (updatedSemiFinalists: string[]) => {
     try {
+      // First try to fetch existing record
+      const { data: existingResults } = await supabase
+        .from('official_results')
+        .select('*')
+        .limit(1);
+
       const { error } = await supabase
         .from('official_results')
         .upsert({
+          id: existingResults?.[0]?.id, // Use existing ID if available
           semi_finalists: updatedSemiFinalists,
-          final_ranking: [], // Keep existing final ranking
+          final_ranking: existingResults?.[0]?.final_ranking || [], // Preserve existing final ranking
           submitted_at: new Date().toISOString(),
         });
 
