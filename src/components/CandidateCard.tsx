@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, UserRound, Instagram, Shirt } from "lucide-react";
+import { Check, UserRound, Instagram, Shirt, Tv } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface CandidateCardProps {
@@ -23,6 +23,7 @@ export function CandidateCard({
   image_url, 
   bio, 
   official_photo_url,
+  portrait_url,
   instagram,
   selected 
 }: CandidateCardProps) {
@@ -80,17 +81,30 @@ export function CandidateCard({
       <div className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm text-rich-black/60">{age} ans</span>
-          {instagram && (
-            <a
-              href={`https://instagram.com/${instagram.replace('@', '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-rich-black/60 hover:text-rich-black transition-colors"
-            >
-              <Instagram className="h-4 w-4" />
-              <span>{instagram}</span>
-            </a>
-          )}
+          <div className="flex items-center gap-2">
+            {portrait_url && (
+              <a
+                href={portrait_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm text-rich-black/60 hover:text-rich-black transition-colors"
+                title="Voir le portrait TF1"
+              >
+                <Tv className="h-4 w-4" />
+              </a>
+            )}
+            {instagram && (
+              <a
+                href={`https://instagram.com/${instagram.replace('@', '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm text-rich-black/60 hover:text-rich-black transition-colors"
+              >
+                <Instagram className="h-4 w-4" />
+                <span>{instagram}</span>
+              </a>
+            )}
+          </div>
         </div>
         <p className="text-sm text-rich-black/80 line-clamp-3">{bio}</p>
       </div>
