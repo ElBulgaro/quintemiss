@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { CandidateForm } from "@/components/admin/CandidateForm";
+import { CandidatesManagement } from "@/components/admin/CandidatesManagement";
 import { CandidateImport } from "@/components/admin/CandidateImport";
-import { CandidateList } from "@/components/admin/CandidateList";
+import { CandidateForm } from "@/components/admin/CandidateForm";
 import { SemiFinalistSelection } from "@/components/admin/SemiFinalistSelection";
 import { FinalRankingSelection } from "@/components/admin/FinalRankingSelection";
 import { useQuery } from "@tanstack/react-query";
@@ -114,16 +112,9 @@ export default function AdminCandidates() {
         </TabsList>
 
         <TabsContent value="candidates">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-playfair font-bold">Manage Candidates</h1>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Candidate
-            </Button>
-          </div>
-
-          <CandidateList
+          <CandidatesManagement
             candidates={candidates || []}
+            onAdd={() => setIsAddDialogOpen(true)}
             onEdit={(candidate) => {
               setSelectedCandidate(candidate);
               setIsEditDialogOpen(true);
