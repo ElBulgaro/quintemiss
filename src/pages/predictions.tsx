@@ -9,7 +9,7 @@ import { CandidatesList } from "@/components/predictions/CandidatesList";
 
 export default function Predictions() {
   const navigate = useNavigate();
-  const { selectedCandidates, updatePredictions } = usePredictionsStorage();
+  const { selectedCandidates, updatePredictions, clearPredictions } = usePredictionsStorage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid-2' | 'grid-3' | 'list'>('grid-2');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -50,6 +50,11 @@ export default function Predictions() {
     } else {
       toast.error("Vous ne pouvez sélectionner que 5 candidates");
     }
+  };
+
+  const handleClearData = () => {
+    clearPredictions();
+    toast.success("Toutes les données ont été effacées");
   };
 
   const handleSubmit = async () => {
@@ -118,6 +123,7 @@ export default function Predictions() {
             onCandidateSelect={handleCandidateSelect}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
+            onClearData={handleClearData}
           />
           <CandidatesList
             viewMode={viewMode}

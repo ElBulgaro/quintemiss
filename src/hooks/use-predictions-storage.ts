@@ -16,8 +16,14 @@ export const usePredictionsStorage = () => {
     localStorage.setItem('predictions', JSON.stringify(predictions));
   };
 
+  const clearPredictions = () => {
+    localStorage.removeItem('predictions');
+    setSelectedCandidates([]);
+  };
+
   return {
     selectedCandidates,
     updatePredictions,
+    clearPredictions,
   };
 };
