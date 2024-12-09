@@ -12,54 +12,51 @@ export default function Login() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Debug log for auth state changes
+    // Handle auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event, 'Session:', session); // Debug log
-      
-      if (event === 'SIGNED_IN' && session) {
-        console.log('User signed in, redirecting...'); // Debug log
-        navigate("/predictions");
-      }
-      
-      if (event === 'SIGNED_OUT') {
-        console.log('User signed out'); // Debug log
-      }
+      console.log('Auth state change:', { event, session });
 
-      if (event === 'PASSWORD_RECOVERY') {
-        toast({
-          title: "Password Recovery",
-          description: "Check your email for the password reset link",
-          duration: 5000,
-        });
+      if (event === 'SIGNED_IN' && session) {
+        console.log('User signed in, redirecting...');
+        navigate("/predictions");
+        return;
       }
     });
 
-    // Handle URL parameters for auth errors
+    // Parse error from URL if present
     const params = new URLSearchParams(location.search);
     const error = params.get('error');
-    const error_description = params.get('error_description');
-    
+    const errorDescription = params.get('error_description');
+
     if (error) {
-      console.log('Auth error from URL:', error, error_description); // Debug log
+      console.log('Auth error:', { error, errorDescription });
       
-      let errorMessage = error_description || 'An error occurred during authentication.';
-      
+      let title = 'Authentication Error';
+      let description = errorDescription || 'An error occurred during authentication.';
+
       // Handle specific error cases
-      if (error === 'invalid_credentials') {
-        errorMessage = 'Invalid email or password. Please try again.';
-      } else if (error === 'user_already_exists') {
-        errorMessage = 'This email is already registered. Please sign in instead.';
-      } else if (error === 'user_not_found') {
-        errorMessage = 'Account not found. Please sign up.';
+      switch (error) {
+        case 'user_already_exists':
+          title = 'Account Exists';
+          description = 'This email is already registered. Please sign in instead.';
+          break;
+        case 'invalid_credentials':
+          title = 'Invalid Credentials';
+          description = 'Invalid email or password. Please try again.';
+          break;
+        case 'user_not_found':
+          title = 'Account Not Found';
+          description = 'No account found with these credentials. Please sign up.';
+          break;
       }
 
       toast({
         variant: "destructive",
-        title: "Authentication Error",
+        title,
         description: (
           <div className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5" />
-            <span>{errorMessage}</span>
+            <span>{description}</span>
           </div>
         ),
         duration: 5000,
@@ -108,26 +105,6 @@ export default function Login() {
             magicLink={true}
             showLinks={true}
             view="sign_in"
-            localization={{
-              variables: {
-                sign_up: {
-                  email_label: 'Email',
-                  password_label: 'Password',
-                  button_label: 'Sign up',
-                  loading_button_label: 'Signing up ...',
-                  social_provider_text: 'Sign in with {{provider}}',
-                  link_text: "Don't have an account? Sign up",
-                },
-                sign_in: {
-                  email_label: 'Email',
-                  password_label: 'Password',
-                  button_label: 'Sign in',
-                  loading_button_label: 'Signing in ...',
-                  social_provider_text: 'Sign in with {{provider}}',
-                  link_text: "Don't have an account? Sign up",
-                },
-              },
-            }}
           />
         </div>
       </div>
