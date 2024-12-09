@@ -7,6 +7,7 @@ export interface Candidate {
   bio: string;
   official_photo_url?: string;
   portrait_url?: string;
+  instagram?: string;
   socialMedia: {
     instagram?: string;
     twitter?: string;
