@@ -31,10 +31,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <Toaster />
-        <Sonner />
-        <Navigation />
-        <AnimatedRoutes />
+        <div className="min-h-screen bg-cream">
+          <Toaster />
+          <Sonner />
+          <Navigation />
+          <AnimatedRoutes />
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
