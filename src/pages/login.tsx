@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
 
 export default function Login() {
@@ -30,6 +30,21 @@ export default function Login() {
         toast({
           title: "Password Recovery",
           description: "Check your email for the password reset link",
+          duration: 5000,
+        });
+      }
+
+      // Handle user_already_exists error
+      if (event === 'USER_NOT_FOUND') {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: (
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              <span>Account not found. Please sign up.</span>
+            </div>
+          ),
           duration: 5000,
         });
       }
