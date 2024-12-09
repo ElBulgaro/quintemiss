@@ -44,7 +44,8 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
-      const formattedCandidates = parsedData.map((candidate) => ({
+      // First, format for database insertion
+      const candidatesForDb = parsedData.map((candidate) => ({
         name: candidate["Nom Complet"],
         region: candidate["Région"],
         bio: candidate["Bio"],
@@ -55,15 +56,32 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
         portrait_url: candidate["URL Portrait TF1"] || null,
       }));
 
-      // Insert candidates into Supabase
-      const { error } = await supabase
+      // Insert into Supabase
+      const { data: insertedCandidates, error } = await supabase
         .from('candidates')
-        .insert(formattedCandidates);
+        .insert(candidatesForDb)
+        .select();
 
       if (error) throw error;
 
+      // Format for the onConfirm callback (matching Candidate type)
+      const formattedCandidates: Candidate[] = insertedCandidates.map((candidate) => ({
+        id: candidate.id,
+        name: candidate.name,
+        region: candidate.region,
+        bio: candidate.bio || "",
+        age: candidate.age || 0,
+        instagram: candidate.instagram,
+        image: candidate.image_url, // Map image_url to image
+        official_photo_url: candidate.official_photo_url,
+        portrait_url: candidate.portrait_url,
+        socialMedia: {
+          instagram: candidate.instagram,
+        }
+      }));
+
       toast.success("Candidates importés avec succès dans la base de données");
-      onConfirm(formattedCandidates as Candidate[]);
+      onConfirm(formattedCandidates);
       setIsPreviewMode(false);
       setParsedData([]);
     } catch (error) {
