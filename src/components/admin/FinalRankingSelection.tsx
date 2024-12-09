@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SortableCandidate } from "@/components/SortableCandidate";
 import type { Candidate } from "@/data/candidates";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FinalRankingSelectionProps {
   candidates: Candidate[];
@@ -43,18 +44,38 @@ export function FinalRankingSelection({
     onUpdateFinalRanking(newRanking);
   };
 
-  const handleCandidateSelect = (candidateId: string) => {
+  const handleCandidateSelect = async (candidateId: string) => {
     if (!semiFinalists.includes(candidateId)) {
       toast.error("Can only select from semi-finalists");
       return;
     }
 
+    let newRanking: string[];
     if (finalRanking.includes(candidateId)) {
-      onUpdateFinalRanking(finalRanking.filter(id => id !== candidateId));
+      newRanking = finalRanking.filter(id => id !== candidateId);
     } else if (finalRanking.length < 5) {
-      onUpdateFinalRanking([...finalRanking, candidateId]);
+      newRanking = [...finalRanking, candidateId];
     } else {
       toast.error("Maximum 5 candidates in final ranking");
+      return;
+    }
+
+    onUpdateFinalRanking(newRanking);
+    
+    try {
+      const { error } = await supabase
+        .from('official_results')
+        .update({
+          final_ranking: newRanking,
+          submitted_at: new Date().toISOString(),
+        })
+        .eq('id', 1); // Assuming we're always updating the first record
+
+      if (error) throw error;
+      toast.success("Final ranking updated");
+    } catch (error) {
+      console.error('Error saving final ranking:', error);
+      toast.error("Failed to save ranking");
     }
   };
 
@@ -72,8 +93,10 @@ export function FinalRankingSelection({
             .map((candidate) => (
               <Card 
                 key={candidate.id}
-                className={`cursor-pointer transition-colors ${
-                  finalRanking.includes(candidate.id) ? 'border-primary' : ''
+                className={`cursor-pointer transition-all duration-300 ${
+                  finalRanking.includes(candidate.id)
+                    ? 'bg-gold/5 border-gold shadow-[0_0_15px_rgba(212,175,55,0.1)]'
+                    : 'hover:bg-white/80'
                 }`}
                 onClick={() => handleCandidateSelect(candidate.id)}
               >
@@ -81,7 +104,7 @@ export function FinalRankingSelection({
                   <div className="flex items-center gap-4">
                     <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                       {finalRanking.includes(candidate.id) && (
-                        <span className="text-lg font-bold">
+                        <span className="text-lg font-bold text-gold">
                           {finalRanking.indexOf(candidate.id) + 1}
                         </span>
                       )}
@@ -102,37 +125,6 @@ export function FinalRankingSelection({
               </Card>
             ))}
         </div>
-
-        {finalRanking.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Current Ranking</h3>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={finalRanking}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-2">
-                  {finalRanking.map((id, index) => {
-                    const candidate = candidates.find(c => c.id === id);
-                    if (!candidate) return null;
-                    return (
-                      <SortableCandidate
-                        key={id}
-                        candidate={candidate}
-                        index={index}
-                        onRemove={() => handleCandidateSelect(id)}
-                      />
-                    );
-                  })}
-                </div>
-              </SortableContext>
-            </DndContext>
-          </div>
-        )}
 
         <Button 
           onClick={onSaveResults}

@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import type { Candidate } from "@/data/candidates";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SemiFinalistSelectionProps {
   candidates: Candidate[];
@@ -13,13 +14,33 @@ export function SemiFinalistSelection({
   semiFinalists,
   onToggleSemiFinalist,
 }: SemiFinalistSelectionProps) {
-  const handleToggle = (candidateId: string) => {
+  const handleToggle = async (candidateId: string) => {
     if (semiFinalists.includes(candidateId)) {
       onToggleSemiFinalist(candidateId);
+      await saveResults(semiFinalists.filter(id => id !== candidateId));
     } else if (semiFinalists.length < 15) {
       onToggleSemiFinalist(candidateId);
+      await saveResults([...semiFinalists, candidateId]);
     } else {
       toast.error("Maximum 15 semi-finalists allowed");
+    }
+  };
+
+  const saveResults = async (updatedSemiFinalists: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('official_results')
+        .upsert({
+          semi_finalists: updatedSemiFinalists,
+          final_ranking: [], // Keep existing final ranking
+          submitted_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+      toast.success("Semi-finalist selection saved");
+    } catch (error) {
+      console.error('Error saving results:', error);
+      toast.error("Failed to save selection");
     }
   };
 
@@ -33,8 +54,10 @@ export function SemiFinalistSelection({
         {candidates.map((candidate) => (
           <Card 
             key={candidate.id}
-            className={`cursor-pointer transition-colors ${
-              semiFinalists.includes(candidate.id) ? 'border-primary' : ''
+            className={`cursor-pointer transition-all duration-300 ${
+              semiFinalists.includes(candidate.id) 
+                ? 'bg-gold/5 border-gold shadow-[0_0_15px_rgba(212,175,55,0.1)]' 
+                : 'hover:bg-white/80'
             }`}
             onClick={() => handleToggle(candidate.id)}
           >
