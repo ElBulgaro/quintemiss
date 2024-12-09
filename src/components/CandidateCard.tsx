@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Image as ImageIcon } from "lucide-react";
+import { Check, Image as ImageIcon, UserRound, Instagram } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface CandidateCardProps {
   id: string;
@@ -11,6 +12,7 @@ interface CandidateCardProps {
   bio: string;
   official_photo_url?: string;
   portrait_url?: string;
+  instagram?: string;
   selected?: boolean;
 }
 
@@ -21,10 +23,11 @@ export function CandidateCard({
   image, 
   bio, 
   official_photo_url,
+  instagram,
   selected 
 }: CandidateCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [showOfficialPhoto, setShowOfficialPhoto] = useState(false);
+  const [showOfficialPhoto, setShowOfficialPhoto] = useState(true);
 
   const displayImage = showOfficialPhoto && official_photo_url ? official_photo_url : image;
 
@@ -37,10 +40,7 @@ export function CandidateCard({
         selected ? "ring-2 ring-gold" : ""
       }`}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        setShowOfficialPhoto(false);
-      }}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative aspect-[3/4] overflow-hidden">
         <img
@@ -62,19 +62,35 @@ export function CandidateCard({
           </div>
         )}
         {official_photo_url && (
-          <button
+          <Button
             onClick={() => setShowOfficialPhoto(!showOfficialPhoto)}
-            className="absolute top-2 left-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 transition-colors"
-            title={showOfficialPhoto ? "Show competition photo" : "Show official photo"}
+            size="icon"
+            variant="ghost"
+            className="absolute top-2 left-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+            title={showOfficialPhoto ? "Voir la photo en maillot de bain" : "Voir la photo officielle"}
           >
-            <ImageIcon className="h-4 w-4 text-white" />
-          </button>
+            {showOfficialPhoto ? (
+              <ImageIcon className="h-4 w-4 text-white" />
+            ) : (
+              <UserRound className="h-4 w-4 text-white" />
+            )}
+          </Button>
         )}
       </div>
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
+      <div className="p-4 space-y-3">
+        <div className="flex items-center justify-between">
           <span className="text-sm text-rich-black/60">{age} ans</span>
-          <div className="h-1 w-1 rounded-full bg-gold" />
+          {instagram && (
+            <a
+              href={`https://instagram.com/${instagram.replace('@', '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-sm text-rich-black/60 hover:text-rich-black transition-colors"
+            >
+              <Instagram className="h-4 w-4" />
+              <span>{instagram}</span>
+            </a>
+          )}
         </div>
         <p className="text-sm text-rich-black/80 line-clamp-3">{bio}</p>
       </div>
