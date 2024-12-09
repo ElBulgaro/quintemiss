@@ -8,6 +8,7 @@ import { SemiFinalistSelection } from "@/components/admin/SemiFinalistSelection"
 import { FinalRankingSelection } from "@/components/admin/FinalRankingSelection";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Candidate } from "@/data/types";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,7 @@ export default function AdminCandidates() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [semiFinalists, setSemiFinalists] = useState<string[]>([]);
   const [finalRanking, setFinalRanking] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -45,17 +46,17 @@ export default function AdminCandidates() {
         .order('name');
       
       if (error) throw error;
-      return data;
+      return data as Candidate[];
     },
   });
 
-  const handleAdd = (data: any) => {
+  const handleAdd = (data: Partial<Candidate>) => {
     console.log("Adding candidate:", data);
     setIsAddDialogOpen(false);
     toast.success("Candidate added successfully!");
   };
 
-  const handleEdit = (data: any) => {
+  const handleEdit = (data: Partial<Candidate>) => {
     console.log("Editing candidate:", data);
     setIsEditDialogOpen(false);
     toast.success("Candidate updated successfully!");
