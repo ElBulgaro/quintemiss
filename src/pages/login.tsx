@@ -33,21 +33,6 @@ export default function Login() {
           duration: 5000,
         });
       }
-
-      // Handle user_already_exists error
-      if (event === 'USER_NOT_FOUND') {
-        toast({
-          variant: "destructive",
-          title: "Authentication Error",
-          description: (
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              <span>Account not found. Please sign up.</span>
-            </div>
-          ),
-          duration: 5000,
-        });
-      }
     });
 
     // Handle URL parameters for auth errors
@@ -64,6 +49,8 @@ export default function Login() {
         errorMessage = 'Invalid email or password. Please try again.';
       } else if (error === 'user_already_exists') {
         errorMessage = 'This email is already registered. Please sign in instead.';
+      } else if (error === 'user_not_found') {
+        errorMessage = 'Account not found. Please sign up.';
       }
 
       toast({
