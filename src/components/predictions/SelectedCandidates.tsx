@@ -22,6 +22,7 @@ export const SelectedCandidates = ({
   onSubmit,
   onClearData,
   isSubmitting,
+  candidates,
 }: SelectedCandidatesProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
