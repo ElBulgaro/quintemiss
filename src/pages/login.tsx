@@ -13,6 +13,8 @@ export default function Login() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event); // Debug log
+      
       if (event === 'SIGNED_IN' && session) {
         // Return to predictions page after login
         navigate("/predictions");
@@ -35,10 +37,41 @@ export default function Login() {
       }
     });
 
+    // Handle auth errors from URL parameters
+    const params = new URLSearchParams(location.search);
+    const error = params.get('error');
+    const error_description = params.get('error_description');
+    
+    if (error === 'user_already_exists') {
+      toast({
+        variant: "destructive",
+        title: "Account Already Exists",
+        description: (
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            <span>This email is already registered. Please sign in instead.</span>
+          </div>
+        ),
+        duration: 5000,
+      });
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: (
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            <span>{error_description || 'An error occurred during authentication.'}</span>
+          </div>
+        ),
+        duration: 5000,
+      });
+    }
+
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate, location, toast]);
 
   return (
     <div className="min-h-screen bg-cream pt-24 pb-16">
