@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { candidates } from "@/data/candidates";
 import { CandidateForm } from "@/components/admin/CandidateForm";
 import { CandidateImport } from "@/components/admin/CandidateImport";
 import { CandidateList } from "@/components/admin/CandidateList";
 import { SemiFinalistSelection } from "@/components/admin/SemiFinalistSelection";
 import { FinalRankingSelection } from "@/components/admin/FinalRankingSelection";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminCandidates() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -35,6 +35,19 @@ export default function AdminCandidates() {
   const [semiFinalists, setSemiFinalists] = useState<string[]>([]);
   const [finalRanking, setFinalRanking] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  const { data: candidates, isLoading } = useQuery({
+    queryKey: ['candidates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleAdd = (data: any) => {
     console.log("Adding candidate:", data);
@@ -79,6 +92,17 @@ export default function AdminCandidates() {
     toast.success("Candidates imported successfully!");
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-24 px-4">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-96 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-24 px-4">
       <Tabs defaultValue="candidates" className="space-y-6">
@@ -98,7 +122,7 @@ export default function AdminCandidates() {
           </div>
 
           <CandidateList
-            candidates={candidates}
+            candidates={candidates || []}
             onEdit={(candidate) => {
               setSelectedCandidate(candidate);
               setIsEditDialogOpen(true);
@@ -120,7 +144,7 @@ export default function AdminCandidates() {
         <TabsContent value="results">
           <div className="space-y-12">
             <SemiFinalistSelection
-              candidates={candidates}
+              candidates={candidates || []}
               semiFinalists={semiFinalists}
               onToggleSemiFinalist={(id) => setSemiFinalists(prev => 
                 prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -129,7 +153,7 @@ export default function AdminCandidates() {
 
             {semiFinalists.length === 15 && (
               <FinalRankingSelection
-                candidates={candidates}
+                candidates={candidates || []}
                 semiFinalists={semiFinalists}
                 finalRanking={finalRanking}
                 onUpdateFinalRanking={setFinalRanking}
