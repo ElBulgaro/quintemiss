@@ -12,44 +12,45 @@ export default function Login() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Handle auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', { event, session });
 
       if (event === 'SIGNED_IN' && session) {
-        // Check if profile exists
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        console.log('Profile check:', { profile, profileError });
-
-        if (!profile && !profileError) {
-          // Profile doesn't exist, create it
-          const { data: newProfile, error: createError } = await supabase
+        try {
+          // First try to get the profile
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .insert([{ id: session.user.id }])
             .select()
-            .single();
+            .eq('id', session.user.id)
+            .maybeSingle();
 
-          console.log('Profile creation:', { newProfile, createError });
+          console.log('Profile check:', { profile, profileError });
 
-          if (createError) {
-            console.error('Error creating profile:', createError);
-            toast({
-              variant: "destructive",
-              title: "Error Creating Profile",
-              description: "There was an error setting up your profile. Please try again.",
-            });
-            return;
+          // If no profile exists and there's no error, create one
+          if (!profile && !profileError) {
+            const { error: createError } = await supabase
+              .from('profiles')
+              .insert({ id: session.user.id });
+
+            console.log('Profile creation attempt:', { createError });
+
+            if (createError) {
+              throw createError;
+            }
+          } else if (profileError) {
+            throw profileError;
           }
-        }
 
-        console.log('User signed in, redirecting...');
-        navigate("/predictions");
-        return;
+          console.log('User signed in, redirecting...');
+          navigate("/predictions");
+        } catch (error) {
+          console.error('Error handling profile:', error);
+          toast({
+            variant: "destructive",
+            title: "Error Setting Up Profile",
+            description: "There was an error setting up your profile. Please try again.",
+          });
+        }
       }
     });
 
