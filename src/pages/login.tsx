@@ -30,43 +30,45 @@ export default function Login() {
 
     if (error) {
       console.log('Auth error:', { error, errorDescription });
-      
-      let title = 'Authentication Error';
-      let description = errorDescription || 'An error occurred during authentication.';
-
-      // Handle specific error cases
-      switch (error) {
-        case 'user_already_exists':
-          title = 'Account Exists';
-          description = 'This email is already registered. Please sign in instead.';
-          break;
-        case 'invalid_credentials':
-          title = 'Invalid Credentials';
-          description = 'Invalid email or password. Please try again.';
-          break;
-        case 'user_not_found':
-          title = 'Account Not Found';
-          description = 'No account found with these credentials. Please sign up.';
-          break;
-      }
-
-      toast({
-        variant: "destructive",
-        title,
-        description: (
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            <span>{description}</span>
-          </div>
-        ),
-        duration: 5000,
-      });
+      handleAuthError(error, errorDescription);
     }
 
     return () => {
       subscription.unsubscribe();
     };
   }, [navigate, location, toast]);
+
+  const handleAuthError = (error: string, errorDescription: string | null) => {
+    let title = 'Authentication Error';
+    let description = errorDescription || 'An error occurred during authentication.';
+
+    switch (error) {
+      case 'user_already_exists':
+        title = 'Account Exists';
+        description = 'This email is already registered. Please sign in instead.';
+        break;
+      case 'invalid_credentials':
+        title = 'Invalid Credentials';
+        description = 'Invalid email or password. Please try again.';
+        break;
+      case 'user_not_found':
+        title = 'Account Not Found';
+        description = 'No account found with these credentials. Please sign up.';
+        break;
+    }
+
+    toast({
+      variant: "destructive",
+      title,
+      description: (
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-5 w-5" />
+          <span>{description}</span>
+        </div>
+      ),
+      duration: 5000,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-cream pt-24 pb-16">
