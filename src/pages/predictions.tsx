@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePredictionsStorage } from "@/hooks/use-predictions-storage";
 import { SelectedCandidates } from "@/components/predictions/SelectedCandidates";
 import { CandidatesList } from "@/components/predictions/CandidatesList";
+import type { Candidate } from "@/data/types";
 
 export default function Predictions() {
   const navigate = useNavigate();
@@ -14,6 +16,19 @@ export default function Predictions() {
   const [viewMode, setViewMode] = useState<'grid-2' | 'grid-3' | 'list'>('grid-2');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
+  const { data: candidates = [] } = useQuery({
+    queryKey: ['candidates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data as Candidate[];
+    },
+  });
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -124,6 +139,7 @@ export default function Predictions() {
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             onClearData={handleClearData}
+            candidates={candidates}
           />
           <CandidatesList
             viewMode={viewMode}
