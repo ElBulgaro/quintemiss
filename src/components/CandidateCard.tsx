@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, Image as ImageIcon } from "lucide-react";
 
 interface CandidateCardProps {
   id: string;
@@ -9,11 +9,24 @@ interface CandidateCardProps {
   region: string;
   image: string;
   bio: string;
+  official_photo_url?: string;
+  portrait_url?: string;
   selected?: boolean;
 }
 
-export function CandidateCard({ name, age, region, image, bio, selected }: CandidateCardProps) {
+export function CandidateCard({ 
+  name, 
+  age, 
+  region, 
+  image, 
+  bio, 
+  official_photo_url,
+  selected 
+}: CandidateCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [showOfficialPhoto, setShowOfficialPhoto] = useState(false);
+
+  const displayImage = showOfficialPhoto && official_photo_url ? official_photo_url : image;
 
   return (
     <motion.div
@@ -24,11 +37,14 @@ export function CandidateCard({ name, age, region, image, bio, selected }: Candi
         selected ? "ring-2 ring-gold" : ""
       }`}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setShowOfficialPhoto(false);
+      }}
     >
       <div className="relative aspect-[3/4] overflow-hidden">
         <img
-          src={image}
+          src={displayImage}
           alt={name}
           className="w-full h-full object-cover transition-transform duration-300"
           style={{
@@ -44,6 +60,15 @@ export function CandidateCard({ name, age, region, image, bio, selected }: Candi
           <div className="absolute top-2 right-2 bg-gold rounded-full p-1">
             <Check className="h-4 w-4 text-white" />
           </div>
+        )}
+        {official_photo_url && (
+          <button
+            onClick={() => setShowOfficialPhoto(!showOfficialPhoto)}
+            className="absolute top-2 left-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 transition-colors"
+            title={showOfficialPhoto ? "Show competition photo" : "Show official photo"}
+          >
+            <ImageIcon className="h-4 w-4 text-white" />
+          </button>
         )}
       </div>
       <div className="p-4">

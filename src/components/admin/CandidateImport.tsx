@@ -13,6 +13,8 @@ interface ParsedCandidate {
   "Nom Complet": string;
   "Région": string;
   "Photo URL (Maillot)": string;
+  "Photo URL (Officielle)"?: string;
+  "URL Portrait TF1"?: string;
 }
 
 export function CandidateImport({ onConfirm }: CandidateImportProps) {
@@ -40,6 +42,8 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
       name: candidate["Nom Complet"],
       region: candidate["Région"],
       image: candidate["Photo URL (Maillot)"],
+      official_photo_url: candidate["Photo URL (Officielle)"] || null,
+      portrait_url: candidate["URL Portrait TF1"] || null,
       age: 20, // Default age since it's not in the CSV
       bio: "", // Empty bio since it's not in the CSV
       socialMedia: {} // Empty social media since it's not in the CSV
@@ -75,11 +79,20 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
             {parsedData.map((candidate, index) => (
               <Card key={index} className="p-4">
                 <div className="space-y-2">
-                  <img
-                    src={candidate["Photo URL (Maillot)"]}
-                    alt={candidate["Nom Complet"]}
-                    className="w-full h-48 object-cover rounded-md"
-                  />
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-md">
+                    <img
+                      src={candidate["Photo URL (Maillot)"]}
+                      alt={candidate["Nom Complet"]}
+                      className="w-full h-full object-cover"
+                    />
+                    {candidate["Photo URL (Officielle)"] && (
+                      <div className="absolute top-2 right-2">
+                        <div className="bg-gold/20 backdrop-blur-sm text-xs px-2 py-1 rounded-full text-white">
+                          Official Photo Available
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <h4 className="font-medium">{candidate["Nom Complet"]}</h4>
                   <p className="text-sm text-muted-foreground">{candidate["Région"]}</p>
                 </div>
