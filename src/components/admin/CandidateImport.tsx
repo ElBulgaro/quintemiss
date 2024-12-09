@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import Papa from "papaparse";
+import { supabase } from "@/integrations/supabase/client";
 import type { Candidate } from "@/data/candidates";
 
 interface CandidateImportProps {
@@ -17,11 +18,13 @@ interface ParsedCandidate {
   "Instagram": string;
   "Photo URL (Costume)": string;
   "Photo URL (Maillot)": string;
+  "URL Portrait TF1": string;
 }
 
 export function CandidateImport({ onConfirm }: CandidateImportProps) {
   const [parsedData, setParsedData] = useState<ParsedCandidate[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -31,30 +34,44 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
       complete: (results) => {
         setParsedData(results.data as ParsedCandidate[]);
         setIsPreviewMode(true);
-        toast.success("File parsed successfully");
+        toast.success("Fichier analysé avec succès");
       },
       header: true,
       skipEmptyLines: true,
     });
   };
 
-  const handleConfirm = () => {
-    const formattedCandidates = parsedData.map((candidate, index) => ({
-      id: (index + 1).toString(),
-      name: candidate["Nom Complet"],
-      region: candidate["Région"],
-      bio: candidate["Bio"],
-      age: parseInt(candidate["Age"]),
-      instagram: candidate["Instagram"],
-      image: candidate["Photo URL (Maillot)"],
-      official_photo_url: candidate["Photo URL (Costume)"],
-      portrait_url: null,
-      socialMedia: {}
-    }));
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    try {
+      const formattedCandidates = parsedData.map((candidate) => ({
+        name: candidate["Nom Complet"],
+        region: candidate["Région"],
+        bio: candidate["Bio"],
+        age: parseInt(candidate["Age"]),
+        instagram: candidate["Instagram"],
+        image_url: candidate["Photo URL (Maillot)"],
+        official_photo_url: candidate["Photo URL (Costume)"],
+        portrait_url: candidate["URL Portrait TF1"] || null,
+      }));
 
-    onConfirm(formattedCandidates);
-    setIsPreviewMode(false);
-    setParsedData([]);
+      // Insert candidates into Supabase
+      const { error } = await supabase
+        .from('candidates')
+        .insert(formattedCandidates);
+
+      if (error) throw error;
+
+      toast.success("Candidates importés avec succès dans la base de données");
+      onConfirm(formattedCandidates as Candidate[]);
+      setIsPreviewMode(false);
+      setParsedData([]);
+    } catch (error) {
+      console.error('Error importing candidates:', error);
+      toast.error("Erreur lors de l'importation des candidates");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -77,7 +94,7 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
 
       {isPreviewMode && parsedData.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Preview ({parsedData.length} candidates)</h3>
+          <h3 className="text-lg font-semibold">Aperçu ({parsedData.length} candidates)</h3>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {parsedData.map((candidate, index) => (
               <Card key={index} className="p-4">
@@ -109,10 +126,13 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setIsPreviewMode(false)}>
-              Cancel
+              Annuler
             </Button>
-            <Button onClick={handleConfirm}>
-              Confirm Import
+            <Button 
+              onClick={handleConfirm} 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Importation..." : "Confirmer l'import"}
             </Button>
           </div>
         </div>
