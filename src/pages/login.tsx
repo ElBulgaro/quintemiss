@@ -12,56 +12,52 @@ export default function Login() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Debug log for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event:', event); // Debug log
+      console.log('Auth event:', event, 'Session:', session); // Debug log
       
       if (event === 'SIGNED_IN' && session) {
-        // Return to predictions page after login
+        console.log('User signed in, redirecting...'); // Debug log
         navigate("/predictions");
       }
       
-      if (event === "USER_ERROR" as any) {
-        console.log('Auth error event:', event); // Debug log
-        
+      if (event === 'USER_DELETED' || event === 'SIGNED_OUT') {
+        console.log('User signed out or deleted'); // Debug log
+      }
+
+      // Handle specific auth errors
+      if (event === 'PASSWORD_RECOVERY') {
         toast({
-          variant: "destructive",
-          title: "Authentication Error",
-          description: (
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              <span>An error occurred during authentication. Please try again.</span>
-            </div>
-          ),
+          title: "Password Recovery",
+          description: "Check your email for the password reset link",
           duration: 5000,
         });
       }
     });
 
-    // Handle auth errors from URL parameters
+    // Handle URL parameters for auth errors
     const params = new URLSearchParams(location.search);
     const error = params.get('error');
     const error_description = params.get('error_description');
     
-    if (error === 'user_already_exists') {
-      toast({
-        variant: "destructive",
-        title: "Account Already Exists",
-        description: (
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            <span>This email is already registered. Please sign in instead.</span>
-          </div>
-        ),
-        duration: 5000,
-      });
-    } else if (error) {
+    if (error) {
+      console.log('Auth error from URL:', error, error_description); // Debug log
+      
+      let errorMessage = error_description || 'An error occurred during authentication.';
+      
+      if (error === 'invalid_credentials') {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (error === 'user_already_exists') {
+        errorMessage = 'This email is already registered. Please sign in instead.';
+      }
+
       toast({
         variant: "destructive",
         title: "Authentication Error",
         description: (
           <div className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5" />
-            <span>{error_description || 'An error occurred during authentication.'}</span>
+            <span>{errorMessage}</span>
           </div>
         ),
         duration: 5000,
@@ -98,9 +94,29 @@ export default function Login() {
                   },
                 },
               },
+              className: {
+                container: 'auth-container',
+                button: 'auth-button',
+                input: 'auth-input',
+                label: 'auth-label',
+              },
             }}
             providers={[]}
             redirectTo={window.location.origin}
+            onError={(error) => {
+              console.error('Auth error:', error); // Debug log
+              toast({
+                variant: "destructive",
+                title: "Authentication Error",
+                description: (
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5" />
+                    <span>{error.message}</span>
+                  </div>
+                ),
+                duration: 5000,
+              });
+            }}
             magicLink={true}
             showLinks={true}
             view="sign_in"
@@ -111,6 +127,14 @@ export default function Login() {
                   password_label: 'Password',
                   button_label: 'Sign up',
                   loading_button_label: 'Signing up ...',
+                  social_provider_text: 'Sign in with {{provider}}',
+                  link_text: "Don't have an account? Sign up",
+                },
+                sign_in: {
+                  email_label: 'Email',
+                  password_label: 'Password',
+                  button_label: 'Sign in',
+                  loading_button_label: 'Signing in ...',
                   social_provider_text: 'Sign in with {{provider}}',
                   link_text: "Don't have an account? Sign up",
                 },
