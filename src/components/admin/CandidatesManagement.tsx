@@ -38,7 +38,7 @@ export function CandidatesManagement({
       const { error } = await supabase
         .from('candidates')
         .delete()
-        .neq('id', ''); // Delete all rows
+        .gt('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows by comparing with minimum UUID
 
       if (error) throw error;
       
