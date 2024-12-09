@@ -21,8 +21,8 @@ export default function Login() {
         navigate("/predictions");
       }
       
-      if (event === 'USER_DELETED' || event === 'SIGNED_OUT') {
-        console.log('User signed out or deleted'); // Debug log
+      if (event === 'SIGNED_OUT') {
+        console.log('User signed out'); // Debug log
       }
 
       // Handle specific auth errors
@@ -103,20 +103,6 @@ export default function Login() {
             }}
             providers={[]}
             redirectTo={window.location.origin}
-            onError={(error) => {
-              console.error('Auth error:', error); // Debug log
-              toast({
-                variant: "destructive",
-                title: "Authentication Error",
-                description: (
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5" />
-                    <span>{error.message}</span>
-                  </div>
-                ),
-                duration: 5000,
-              });
-            }}
             magicLink={true}
             showLinks={true}
             view="sign_in"
