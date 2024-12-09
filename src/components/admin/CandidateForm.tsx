@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
-import { Candidate } from "@/data/candidates";
+import { Candidate } from "@/data/types";
 
 interface CandidateFormProps {
   candidate?: Candidate;
@@ -25,8 +25,9 @@ export function CandidateForm({ candidate, onSubmit, onCancel }: CandidateFormPr
       name: candidate?.name || "",
       age: candidate?.age || "",
       region: candidate?.region || "",
-      image: candidate?.image || "",
+      image_url: candidate?.image_url || "",
       bio: candidate?.bio || "",
+      instagram: candidate?.instagram || "",
     },
   });
 
@@ -82,7 +83,7 @@ export function CandidateForm({ candidate, onSubmit, onCancel }: CandidateFormPr
 
         <FormField
           control={form.control}
-          name="image"
+          name="image_url"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Image URL</FormLabel>
@@ -102,6 +103,20 @@ export function CandidateForm({ candidate, onSubmit, onCancel }: CandidateFormPr
               <FormLabel>Biography</FormLabel>
               <FormControl>
                 <Textarea placeholder="Enter candidate biography" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="instagram"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Instagram</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter Instagram handle" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

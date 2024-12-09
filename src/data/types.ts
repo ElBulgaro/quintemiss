@@ -1,16 +1,13 @@
 export interface Candidate {
   id: string;
   name: string;
-  age: number;
+  age: number | null;
   region: string;
-  image: string;
-  bio: string;
-  official_photo_url?: string;
-  portrait_url?: string;
-  instagram?: string;
-  socialMedia: {
-    instagram?: string;
-    twitter?: string;
-    facebook?: string;
-  };
+  image_url: string;
+  bio: string | null;
+  official_photo_url?: string | null;
+  portrait_url?: string | null;
+  instagram?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }

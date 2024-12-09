@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Candidate } from "@/data/candidates";
+import type { Candidate } from "@/data/types";
 
 interface CandidateListProps {
   candidates: Candidate[];
