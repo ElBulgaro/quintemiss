@@ -1,2 +1,2 @@
 export { candidates } from './candidatesList';
-export type { Candidate } from '../types';
+export type { Candidate } from './types';
