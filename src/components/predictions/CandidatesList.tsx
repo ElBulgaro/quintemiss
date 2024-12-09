@@ -1,6 +1,5 @@
 import { ViewToggle } from "@/components/ViewToggle";
 import { CandidatesView } from "@/components/CandidatesView";
-import { candidates } from "@/data/candidates";
 
 interface CandidatesListProps {
   viewMode: 'grid-2' | 'grid-3' | 'list';
@@ -23,7 +22,6 @@ export const CandidatesList = ({
       </div>
       <div className="max-h-[600px] overflow-y-auto">
         <CandidatesView
-          candidates={candidates}
           viewMode={viewMode}
           selectedCandidates={selectedCandidates}
           onCandidateSelect={onCandidateSelect}
