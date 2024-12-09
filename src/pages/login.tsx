@@ -44,6 +44,7 @@ export default function Login() {
       
       let errorMessage = error_description || 'An error occurred during authentication.';
       
+      // Handle specific error cases
       if (error === 'invalid_credentials') {
         errorMessage = 'Invalid email or password. Please try again.';
       } else if (error === 'user_already_exists') {
