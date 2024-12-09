@@ -8,7 +8,7 @@ interface CandidateCardProps {
   name: string;
   age: number;
   region: string;
-  image: string;
+  image_url: string;
   bio: string;
   official_photo_url?: string;
   portrait_url?: string;
@@ -20,7 +20,7 @@ export function CandidateCard({
   name, 
   age, 
   region, 
-  image, 
+  image_url, 
   bio, 
   official_photo_url,
   instagram,
@@ -29,7 +29,7 @@ export function CandidateCard({
   const [isHovered, setIsHovered] = useState(false);
   const [showOfficialPhoto, setShowOfficialPhoto] = useState(true);
 
-  const displayImage = showOfficialPhoto && official_photo_url ? official_photo_url : image;
+  const displayImage = showOfficialPhoto && official_photo_url ? official_photo_url : image_url;
 
   return (
     <motion.div

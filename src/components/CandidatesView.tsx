@@ -1,19 +1,49 @@
+import { useQuery } from "@tanstack/react-query";
 import { CandidateCard } from "@/components/CandidateCard";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "./ui/skeleton";
 import type { Candidate } from "@/data/candidates";
 
 interface CandidatesViewProps {
-  candidates: Candidate[];
   viewMode: 'grid-2' | 'grid-3' | 'list';
   selectedCandidates: string[];
   onCandidateSelect: (id: string) => void;
 }
 
 export function CandidatesView({
-  candidates,
   viewMode,
   selectedCandidates,
   onCandidateSelect,
 }: CandidatesViewProps) {
+  const { data: candidates, isLoading } = useQuery({
+    queryKey: ['candidates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className={`${
+        viewMode === 'list'
+          ? 'flex flex-col gap-4'
+          : viewMode === 'grid-3'
+          ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+          : 'grid grid-cols-1 md:grid-cols-2 gap-4'
+      }`}>
+        {[...Array(6)].map((_, index) => (
+          <Skeleton key={index} className="h-24 w-full" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div
       className={`${
@@ -24,7 +54,7 @@ export function CandidatesView({
           : 'grid grid-cols-1 md:grid-cols-2 gap-4'
       }`}
     >
-      {candidates.map((candidate) => (
+      {candidates?.map((candidate) => (
         <div
           key={candidate.id}
           className="cursor-pointer"
@@ -39,7 +69,7 @@ export function CandidatesView({
               } border shadow-sm hover:shadow-md transition-all`}
             >
               <img
-                src={candidate.image}
+                src={candidate.image_url}
                 alt={candidate.name}
                 className="w-16 h-16 object-cover rounded-full"
               />
