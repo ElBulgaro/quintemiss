@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import Papa from "papaparse";
+import type { Candidate } from "@/data/candidates";
 
 interface CandidateImportProps {
-  onConfirm: (candidates: any[]) => void;
+  onConfirm: (candidates: Candidate[]) => void;
 }
 
 interface ParsedCandidate {
