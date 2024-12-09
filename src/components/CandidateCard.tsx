@@ -46,7 +46,7 @@ export function CandidateCard({
         <img
           src={displayImage}
           alt={name}
-          className="w-full h-full object-cover transition-transform duration-300"
+          className="w-full h-full object-cover object-top transition-transform duration-300"
           style={{
             transform: isHovered ? "scale(1.05)" : "scale(1)",
           }}
