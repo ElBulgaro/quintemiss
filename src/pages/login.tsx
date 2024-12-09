@@ -17,6 +17,36 @@ export default function Login() {
       console.log('Auth state change:', { event, session });
 
       if (event === 'SIGNED_IN' && session) {
+        // Check if profile exists
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        console.log('Profile check:', { profile, profileError });
+
+        if (!profile && !profileError) {
+          // Profile doesn't exist, create it
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert([{ id: session.user.id }])
+            .select()
+            .single();
+
+          console.log('Profile creation:', { newProfile, createError });
+
+          if (createError) {
+            console.error('Error creating profile:', createError);
+            toast({
+              variant: "destructive",
+              title: "Error Creating Profile",
+              description: "There was an error setting up your profile. Please try again.",
+            });
+            return;
+          }
+        }
+
         console.log('User signed in, redirecting...');
         navigate("/predictions");
         return;
