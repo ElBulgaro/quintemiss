@@ -16,6 +16,8 @@ export type Database = {
           image_url: string
           info_url: string | null
           name: string
+          official_photo_url: string | null
+          portrait_url: string | null
           region: string
           updated_at: string
         }
@@ -25,6 +27,8 @@ export type Database = {
           image_url: string
           info_url?: string | null
           name: string
+          official_photo_url?: string | null
+          portrait_url?: string | null
           region: string
           updated_at?: string
         }
@@ -34,6 +38,8 @@ export type Database = {
           image_url?: string
           info_url?: string | null
           name?: string
+          official_photo_url?: string | null
+          portrait_url?: string | null
           region?: string
           updated_at?: string
         }
