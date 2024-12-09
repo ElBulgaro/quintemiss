@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { candidates } from "@/data/candidates";
 import { CandidateForm } from "@/components/admin/CandidateForm";
+import { CandidateImport } from "@/components/admin/CandidateImport";
 import { SemiFinalistSelection } from "@/components/admin/SemiFinalistSelection";
 import { FinalRankingSelection } from "@/components/admin/FinalRankingSelection";
 import {
@@ -81,11 +82,18 @@ export default function AdminCandidates() {
     );
   };
 
+  const handleImportConfirm = (importedCandidates: any[]) => {
+    console.log("Imported candidates:", importedCandidates);
+    toast.success("Candidates imported successfully!");
+    // Here you would typically update your data source with the imported candidates
+  };
+
   return (
     <div className="container mx-auto py-24 px-4">
       <Tabs defaultValue="candidates" className="space-y-6">
         <TabsList>
           <TabsTrigger value="candidates">Candidates</TabsTrigger>
+          <TabsTrigger value="import">Import</TabsTrigger>
           <TabsTrigger value="results">Official Results</TabsTrigger>
         </TabsList>
 
@@ -140,6 +148,13 @@ export default function AdminCandidates() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="import">
+          <div className="space-y-6">
+            <h2 className="text-3xl font-playfair font-bold">Import Candidates</h2>
+            <CandidateImport onConfirm={handleImportConfirm} />
           </div>
         </TabsContent>
 
