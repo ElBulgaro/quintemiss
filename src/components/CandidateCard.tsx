@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Image as ImageIcon, UserRound, Instagram } from "lucide-react";
+import { Check, UserRound, Instagram, Shirt } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface CandidateCardProps {
@@ -70,7 +70,7 @@ export function CandidateCard({
             title={showOfficialPhoto ? "Voir la photo en maillot de bain" : "Voir la photo officielle"}
           >
             {showOfficialPhoto ? (
-              <ImageIcon className="h-4 w-4 text-white" />
+              <Shirt className="h-4 w-4 text-white" />
             ) : (
               <UserRound className="h-4 w-4 text-white" />
             )}
