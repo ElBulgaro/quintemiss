@@ -25,7 +25,6 @@ export default function Login() {
         console.log('User signed out'); // Debug log
       }
 
-      // Handle specific auth errors
       if (event === 'PASSWORD_RECOVERY') {
         toast({
           title: "Password Recovery",
