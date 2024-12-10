@@ -27,7 +27,9 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
   useEffect(() => {
     const loadModels = async () => {
       try {
+        console.log('Loading face detection models...');
         await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+        console.log('Face detection models loaded successfully');
         setModelsLoaded(true);
       } catch (error) {
         console.error('Error loading face detection models:', error);
@@ -38,15 +40,23 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
 
   useEffect(() => {
     const detectFace = async () => {
-      if (!imgRef.current || !modelsLoaded) return;
+      if (!imgRef.current || !modelsLoaded) {
+        console.log('Image ref or models not ready:', { 
+          imageReady: !!imgRef.current, 
+          modelsLoaded 
+        });
+        return;
+      }
 
       try {
+        console.log('Starting face detection...');
         const detections = await faceapi.detectSingleFace(
           imgRef.current,
           new faceapi.TinyFaceDetectorOptions()
         );
 
         if (detections) {
+          console.log('Face detected:', detections.box);
           const { x, y, width, height } = detections.box;
           const imgWidth = imgRef.current.width;
           const imgHeight = imgRef.current.height;
@@ -55,7 +65,10 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
           const centerX = ((x + width / 2) / imgWidth) * 100;
           const centerY = ((y + height / 2) / imgHeight) * 100;
           
+          console.log('Setting face position:', { centerX, centerY });
           setFacePosition({ x: centerX, y: centerY });
+        } else {
+          console.log('No face detected, using default position');
         }
       } catch (error) {
         console.error('Error detecting face:', error);
@@ -63,8 +76,10 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
     };
 
     if (imgRef.current?.complete && modelsLoaded) {
+      console.log('Image is complete, running face detection');
       detectFace();
     } else if (imgRef.current) {
+      console.log('Image not complete, waiting for load event');
       imgRef.current.onload = detectFace;
     }
   }, [modelsLoaded]);
