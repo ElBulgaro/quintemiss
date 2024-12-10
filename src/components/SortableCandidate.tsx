@@ -37,11 +37,11 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
         <GripVertical className="h-5 w-5 text-rich-black/40" />
       </button>
       <div className="flex-1 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full overflow-hidden">
+        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
           <img
-            src={candidate.image_url}
+            src={candidate.official_photo_url || candidate.image_url}
             alt={candidate.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-top"
           />
         </div>
         <div>
