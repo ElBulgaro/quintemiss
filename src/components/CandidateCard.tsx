@@ -47,9 +47,9 @@ export function CandidateCard({
         <img
           src={displayImage}
           alt={name}
-          className="w-full h-full object-cover object-top transition-transform duration-300"
+          className="absolute w-[120%] h-[120%] object-cover object-top left-1/2 -translate-x-1/2 transition-transform duration-300"
           style={{
-            transform: isHovered ? "scale(1.05)" : "scale(1)",
+            transform: isHovered ? "translateX(-50%) scale(1.1)" : "translateX(-50%) scale(1.05)",
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
