@@ -28,11 +28,20 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
     const loadModels = async () => {
       try {
         console.log('Loading face detection models...');
+        // Load models from the correct path
         await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
         console.log('Face detection models loaded successfully');
         setModelsLoaded(true);
       } catch (error) {
         console.error('Error loading face detection models:', error);
+        // Log more details about the error
+        if (error instanceof Error) {
+          console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+        }
       }
     };
     loadModels();
@@ -52,7 +61,7 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
         console.log('Starting face detection...');
         const detections = await faceapi.detectSingleFace(
           imgRef.current,
-          new faceapi.TinyFaceDetectorOptions()
+          new faceapi.TinyFaceDetectorOptions({ inputSize: 224 })
         );
 
         if (detections) {
@@ -72,6 +81,13 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
         }
       } catch (error) {
         console.error('Error detecting face:', error);
+        if (error instanceof Error) {
+          console.error('Detection error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+        }
       }
     };
 
