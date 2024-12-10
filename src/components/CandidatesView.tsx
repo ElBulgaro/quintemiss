@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CandidateCard } from "@/components/CandidateCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "./ui/skeleton";
-import type { Candidate } from "@/data/candidates";
+import type { Candidate } from "@/data/types";
 
 interface CandidatesViewProps {
   viewMode: 'grid-2' | 'grid-3' | 'list';
@@ -68,11 +68,18 @@ export function CandidatesView({
                   : 'bg-white/50 border-white/20'
               } border shadow-sm hover:shadow-md transition-all`}
             >
-              <img
-                src={candidate.image_url}
-                alt={candidate.name}
-                className="w-16 h-16 object-cover rounded-full"
-              />
+              <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                <img
+                  src={candidate.official_photo_url || candidate.image_url}
+                  alt={candidate.name}
+                  className="w-[150%] h-[150%] object-cover"
+                  style={{
+                    objectPosition: '50% 35%',
+                    transform: 'translate(-16%, -16%)'
+                  }}
+                  crossOrigin="anonymous"
+                />
+              </div>
               <div>
                 <h3 className="font-medium text-rich-black">{candidate.name}</h3>
                 <p className="text-sm text-rich-black/60">{candidate.region}</p>
