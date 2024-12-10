@@ -68,11 +68,13 @@ export function CandidatesView({
                   : 'bg-white/50 border-white/20'
               } border shadow-sm hover:shadow-md transition-all`}
             >
-              <img
-                src={candidate.image_url}
-                alt={candidate.name}
-                className="w-16 h-16 object-cover rounded-full"
-              />
+              <div className="relative w-16 h-16 overflow-hidden rounded-full flex-shrink-0">
+                <img
+                  src={candidate.image_url}
+                  alt={candidate.name}
+                  className="absolute w-[120%] h-[120%] object-cover object-top left-1/2 -translate-x-1/2"
+                />
+              </div>
               <div>
                 <h3 className="font-medium text-rich-black">{candidate.name}</h3>
                 <p className="text-sm text-rich-black/60">{candidate.region}</p>
