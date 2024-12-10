@@ -1,6 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import * as faceapi from "face-api.js";
 import type { Candidate } from "@/data/types";
 
 interface SortableCandidateProps {
@@ -17,6 +19,55 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
     transform,
     transition,
   } = useSortable({ id: candidate.id });
+  
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [facePosition, setFacePosition] = useState({ x: 50, y: 35 });
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+        setModelsLoaded(true);
+      } catch (error) {
+        console.error('Error loading face detection models:', error);
+      }
+    };
+    loadModels();
+  }, []);
+
+  useEffect(() => {
+    const detectFace = async () => {
+      if (!imgRef.current || !modelsLoaded) return;
+
+      try {
+        const detections = await faceapi.detectSingleFace(
+          imgRef.current,
+          new faceapi.TinyFaceDetectorOptions()
+        );
+
+        if (detections) {
+          const { x, y, width, height } = detections.box;
+          const imgWidth = imgRef.current.width;
+          const imgHeight = imgRef.current.height;
+          
+          // Calculate center of face relative to image dimensions
+          const centerX = ((x + width / 2) / imgWidth) * 100;
+          const centerY = ((y + height / 2) / imgHeight) * 100;
+          
+          setFacePosition({ x: centerX, y: centerY });
+        }
+      } catch (error) {
+        console.error('Error detecting face:', error);
+      }
+    };
+
+    if (imgRef.current?.complete && modelsLoaded) {
+      detectFace();
+    } else if (imgRef.current) {
+      imgRef.current.onload = detectFace;
+    }
+  }, [modelsLoaded]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -39,9 +90,15 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
       <div className="flex-1 flex items-center gap-4">
         <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0">
           <img
+            ref={imgRef}
             src={candidate.official_photo_url || candidate.image_url}
             alt={candidate.name}
-            className="w-[150%] h-[150%] object-cover object-[50%_35%] -translate-x-[16%] -translate-y-[16%]"
+            className="w-[150%] h-[150%] object-cover"
+            style={{
+              objectPosition: `${facePosition.x}% ${facePosition.y}%`,
+              transform: 'translate(-16%, -16%)'
+            }}
+            crossOrigin="anonymous"
           />
         </div>
         <div>
