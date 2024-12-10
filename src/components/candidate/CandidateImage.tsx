@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shirt, UserRound } from "lucide-react";
+import { Shirt, UserRound, Check } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface CandidateImageProps {
