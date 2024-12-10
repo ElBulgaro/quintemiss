@@ -41,7 +41,7 @@ export function SortableCandidate({ candidate, index, onRemove }: SortableCandid
           <img
             src={candidate.official_photo_url || candidate.image_url}
             alt={candidate.name}
-            className="absolute w-[300%] h-[300%] object-cover object-top left-1/2 -translate-x-1/2"
+            className="absolute w-[400%] h-[400%] object-cover object-top left-1/2 -translate-x-1/2"
           />
         </div>
         <div>
