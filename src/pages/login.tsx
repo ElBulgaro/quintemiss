@@ -30,6 +30,7 @@ export default function Login() {
 
         if (existingUser) {
           toast.error("Username already taken");
+          setIsLoading(false);
           return;
         }
 
@@ -37,14 +38,27 @@ export default function Login() {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const { error: createError } = await supabase
+        const { data: newUser, error: createError } = await supabase
           .from('auth_users')
           .insert({
             username,
             password_hash: hashedPassword
-          });
+          })
+          .select()
+          .single();
 
         if (createError) throw createError;
+
+        // Create profile for the new user
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: newUser.id,
+            username: username,
+            is_admin: false
+          });
+
+        if (profileError) throw profileError;
 
         toast.success("Account created successfully!");
         setIsSignUp(false);
@@ -58,6 +72,7 @@ export default function Login() {
 
         if (loginError || !user) {
           toast.error("Invalid username or password");
+          setIsLoading(false);
           return;
         }
 
@@ -65,25 +80,8 @@ export default function Login() {
         
         if (!isValidPassword) {
           toast.error("Invalid username or password");
+          setIsLoading(false);
           return;
-        }
-
-        // Create profile if it doesn't exist
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select()
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (!profile && !profileError) {
-          const { error: createProfileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: user.id,
-              username: username
-            });
-
-          if (createProfileError) throw createProfileError;
         }
 
         toast.success("Logged in successfully!");
