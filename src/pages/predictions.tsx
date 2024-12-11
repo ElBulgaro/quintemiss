@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePredictionsStorage } from "@/hooks/use-predictions-storage";
 import { SelectedCandidates } from "@/components/predictions/SelectedCandidates";
 import { CandidatesList } from "@/components/predictions/CandidatesList";
+import { Leaderboard } from "@/components/predictions/Leaderboard";
 import type { Candidate } from "@/data/types";
 
 export default function Predictions() {
@@ -131,22 +132,29 @@ export default function Predictions() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <SelectedCandidates
-            selectedCandidates={selectedCandidates}
-            onDragEnd={handleDragEnd}
-            onCandidateSelect={handleCandidateSelect}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            onClearData={handleClearData}
-            candidates={candidates}
-          />
-          <CandidatesList
-            viewMode={viewMode}
-            selectedCandidates={selectedCandidates}
-            onViewChange={setViewMode}
-            onCandidateSelect={handleCandidateSelect}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8">
+            <div className="grid grid-cols-1 gap-8">
+              <SelectedCandidates
+                selectedCandidates={selectedCandidates}
+                onDragEnd={handleDragEnd}
+                onCandidateSelect={handleCandidateSelect}
+                onSubmit={handleSubmit}
+                isSubmitting={isSubmitting}
+                onClearData={handleClearData}
+                candidates={candidates}
+              />
+              <CandidatesList
+                viewMode={viewMode}
+                selectedCandidates={selectedCandidates}
+                onViewChange={setViewMode}
+                onCandidateSelect={handleCandidateSelect}
+              />
+            </div>
+          </div>
+          <div className="lg:col-span-4">
+            <Leaderboard />
+          </div>
         </div>
       </div>
     </div>

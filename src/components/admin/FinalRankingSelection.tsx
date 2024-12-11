@@ -3,6 +3,7 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SortableCandidate } from "@/components/SortableCandidate";
+import { calculateScore } from "@/utils/calculateScore";
 import type { Candidate } from "@/data/candidates";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,6 +77,53 @@ export function FinalRankingSelection({
     } catch (error) {
       console.error('Error saving final ranking:', error);
       toast.error("Failed to save ranking");
+    }
+  };
+
+  const handleSaveResults = async () => {
+    if (finalRanking.length !== 5) {
+      toast.error("Please select exactly 5 candidates for the final ranking");
+      return;
+    }
+
+    try {
+      // First, save the official results
+      const { error: resultsError } = await supabase
+        .from('official_results')
+        .upsert({
+          final_ranking: finalRanking,
+          submitted_at: new Date().toISOString(),
+        });
+
+      if (resultsError) throw resultsError;
+
+      // Get all user predictions
+      const { data: predictions, error: predictionsError } = await supabase
+        .from('predictions')
+        .select('user_id, predictions');
+
+      if (predictionsError) throw predictionsError;
+
+      // Calculate and save scores for each user
+      const scorePromises = predictions.map(async (prediction) => {
+        const { score, perfectMatch } = calculateScore(prediction.predictions, finalRanking);
+        
+        return supabase
+          .from('scores')
+          .upsert({
+            user_id: prediction.user_id,
+            score,
+            perfect_match: perfectMatch,
+          });
+      });
+
+      await Promise.all(scorePromises);
+
+      toast.success("Official results and scores have been saved!");
+      onSaveResults();
+    } catch (error) {
+      console.error('Error saving results:', error);
+      toast.error("Failed to save results");
     }
   };
 
