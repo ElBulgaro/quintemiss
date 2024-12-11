@@ -1,11 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
 import bcrypt from "bcryptjs";
 
 export default function Login() {
@@ -60,8 +59,17 @@ export default function Login() {
 
         if (profileError) throw profileError;
 
+        // Set session data in localStorage
+        localStorage.setItem('user', JSON.stringify({
+          id: newUser.id,
+          username: username
+        }));
+
+        // Emit auth state change event
+        window.dispatchEvent(new Event('auth-state-changed'));
+
         toast.success("Account created successfully!");
-        setIsSignUp(false);
+        navigate("/predictions");
       } else {
         // Login flow
         const { data: user, error: loginError } = await supabase
@@ -83,6 +91,15 @@ export default function Login() {
           setIsLoading(false);
           return;
         }
+
+        // Set session data in localStorage
+        localStorage.setItem('user', JSON.stringify({
+          id: user.id,
+          username: username
+        }));
+
+        // Emit auth state change event
+        window.dispatchEvent(new Event('auth-state-changed'));
 
         toast.success("Logged in successfully!");
         navigate("/predictions");
