@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, Shirt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useImageToggleStore } from "@/store/useImageToggleStore";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const { showOfficialPhoto, toggleImage } = useImageToggleStore();
   // Temporary mock admin state - you'll need to integrate this with your auth system
   const isAdmin = true;
 
@@ -59,6 +61,14 @@ export function Navigation() {
                 Admin
               </Link>
             )}
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={toggleImage}
+              className="hover:bg-gold/10"
+            >
+              <Shirt className={`h-5 w-5 ${showOfficialPhoto ? 'text-gold' : 'text-rich-black/60'}`} />
+            </Button>
             {isAuthenticated ? (
               <Button variant="outline" size="sm" className="hover-lift" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
@@ -73,7 +83,15 @@ export function Navigation() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-4">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={toggleImage}
+              className="hover:bg-gold/10"
+            >
+              <Shirt className={`h-5 w-5 ${showOfficialPhoto ? 'text-gold' : 'text-rich-black/60'}`} />
+            </Button>
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-rich-black"
