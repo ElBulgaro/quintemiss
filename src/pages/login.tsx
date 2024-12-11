@@ -17,7 +17,6 @@ export default function Login() {
 
       if (event === 'SIGNED_IN' && session) {
         try {
-          // First try to get the profile
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select()
@@ -26,7 +25,6 @@ export default function Login() {
 
           console.log('Profile check:', { profile, profileError });
 
-          // If no profile exists and there's no error, create one
           if (!profile && !profileError) {
             const { error: createError } = await supabase
               .from('profiles')
@@ -57,7 +55,6 @@ export default function Login() {
       }
     });
 
-    // Parse error from URL if present
     const params = new URLSearchParams(location.search);
     const error = params.get('error');
     const errorDescription = params.get('error_description');
@@ -134,6 +131,20 @@ export default function Login() {
                 button: 'auth-button',
                 input: 'auth-input',
                 label: 'auth-label',
+              },
+            }}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: 'Username',
+                  email_input_placeholder: 'Your username',
+                  password_label: 'Password',
+                },
+                sign_up: {
+                  email_label: 'Username',
+                  email_input_placeholder: 'Choose a username',
+                  password_label: 'Password',
+                },
               },
             }}
             providers={[]}
