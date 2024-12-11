@@ -1,20 +1,24 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', { event, session });
-
       if (event === 'SIGNED_IN' && session) {
         try {
           const { data: profile, error: profileError } = await supabase
@@ -23,26 +27,19 @@ export default function Login() {
             .eq('id', session.user.id)
             .maybeSingle();
 
-          console.log('Profile check:', { profile, profileError });
-
           if (!profile && !profileError) {
             const { error: createError } = await supabase
               .from('profiles')
               .insert({
                 id: session.user.id,
-                username: session.user.user_metadata.username
+                username: username
               });
 
-            console.log('Profile creation attempt:', { createError });
-
-            if (createError) {
-              throw createError;
-            }
+            if (createError) throw createError;
           } else if (profileError) {
             throw profileError;
           }
 
-          console.log('User signed in, redirecting...');
           navigate("/predictions");
         } catch (error) {
           console.error('Error handling profile:', error);
@@ -55,50 +52,57 @@ export default function Login() {
       }
     });
 
-    const params = new URLSearchParams(location.search);
-    const error = params.get('error');
-    const errorDescription = params.get('error_description');
-
-    if (error) {
-      console.log('Auth error:', { error, errorDescription });
-      handleAuthError(error, errorDescription);
-    }
-
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, location, toast]);
+  }, [navigate, toast, username]);
 
-  const handleAuthError = (error: string, errorDescription: string | null) => {
-    let title = 'Authentication Error';
-    let description = errorDescription || 'An error occurred during authentication.';
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-    switch (error) {
-      case 'user_already_exists':
-        title = 'Account Exists';
-        description = 'This username is already registered. Please sign in instead.';
-        break;
-      case 'invalid_credentials':
-        title = 'Invalid Credentials';
-        description = 'Invalid username or password. Please try again.';
-        break;
-      case 'user_not_found':
-        title = 'Account Not Found';
-        description = 'No account found with these credentials. Please sign up.';
-        break;
+    try {
+      const authAction = isSignUp ? 
+        supabase.auth.signUp({
+          email: `${username}@placeholder.com`,
+          password,
+          options: {
+            data: {
+              username
+            }
+          }
+        }) :
+        supabase.auth.signInWithPassword({
+          email: `${username}@placeholder.com`,
+          password
+        });
+
+      const { error } = await authAction;
+
+      if (error) throw error;
+
+      if (isSignUp) {
+        toast({
+          title: "Account created successfully",
+          description: "You can now sign in with your credentials.",
+        });
+        setIsSignUp(false);
+      }
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: (
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            <span>{error.message}</span>
+          </div>
+        ),
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    toast({
-      variant: "destructive",
-      title,
-      description: (
-        <div className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" />
-          <span>{description}</span>
-        </div>
-      ),
-      duration: 5000,
-    });
   };
 
   return (
@@ -106,52 +110,59 @@ export default function Login() {
       <div className="max-w-md mx-auto px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-rich-black mb-4">
-            Welcome Back
+            {isSignUp ? "Create Account" : "Welcome Back"}
           </h1>
           <p className="text-rich-black/60">
-            Sign in to save your predictions for Miss France 2024
+            {isSignUp 
+              ? "Sign up to start making predictions for Miss France 2024"
+              : "Sign in to save your predictions for Miss France 2024"}
           </p>
         </div>
         
         <div className="glass-card p-6 rounded-lg">
-          <Auth
-            supabaseClient={supabase}
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: '#D4AF37',
-                    brandAccent: '#b79830',
-                  },
-                },
-              },
-              className: {
-                container: 'auth-container',
-                button: 'auth-button',
-                input: 'auth-input',
-                label: 'auth-label',
-              },
-            }}
-            localization={{
-              variables: {
-                sign_in: {
-                  email_label: 'Username',
-                  email_input_placeholder: 'Your username',
-                  password_label: 'Password',
-                },
-                sign_up: {
-                  email_label: 'Username',
-                  email_input_placeholder: 'Choose a username',
-                  password_label: 'Password',
-                },
-              },
-            }}
-            providers={[]}
-            redirectTo={window.location.origin}
-            view="sign_in"
-            showLinks={false}
-          />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
+            </Button>
+          </form>
+
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-rich-black/60 hover:text-rich-black"
+            >
+              {isSignUp 
+                ? "Already have an account? Sign in" 
+                : "Don't have an account? Sign up"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
