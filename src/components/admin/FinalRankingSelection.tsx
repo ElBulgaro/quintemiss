@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SortableCandidate } from "@/components/SortableCandidate";
 import { calculateScore } from "@/utils/calculateScore";
-import type { Candidate } from "@/data/candidates";
+import type { Candidate } from "@/data/types";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -64,13 +64,20 @@ export function FinalRankingSelection({
     onUpdateFinalRanking(newRanking);
     
     try {
+      // First get the existing record to preserve semi_finalists
+      const { data: existingResults } = await supabase
+        .from('official_results')
+        .select('*')
+        .limit(1);
+
       const { error } = await supabase
         .from('official_results')
-        .update({
+        .upsert({
+          id: existingResults?.[0]?.id, // Use existing ID if available
+          semi_finalists: existingResults?.[0]?.semi_finalists || [],
           final_ranking: newRanking,
           submitted_at: new Date().toISOString(),
-        })
-        .eq('id', 1); // Assuming we're always updating the first record
+        });
 
       if (error) throw error;
       toast.success("Final ranking updated");
@@ -87,10 +94,18 @@ export function FinalRankingSelection({
     }
 
     try {
-      // First, save the official results
+      // First get the existing record to preserve semi_finalists
+      const { data: existingResults } = await supabase
+        .from('official_results')
+        .select('*')
+        .limit(1);
+
+      // Save the official results
       const { error: resultsError } = await supabase
         .from('official_results')
         .upsert({
+          id: existingResults?.[0]?.id,
+          semi_finalists: existingResults?.[0]?.semi_finalists || [],
           final_ranking: finalRanking,
           submitted_at: new Date().toISOString(),
         });
@@ -175,7 +190,7 @@ export function FinalRankingSelection({
         </div>
 
         <Button 
-          onClick={onSaveResults}
+          onClick={handleSaveResults}
           disabled={isSaving || finalRanking.length !== 5}
           className="mt-6"
         >

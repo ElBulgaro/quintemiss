@@ -8,7 +8,9 @@ interface LeaderboardEntry {
   user_id: string;
   score: number;
   perfect_match: boolean;
-  username: string | null;
+  profiles: {
+    username: string | null;
+  } | null;
 }
 
 export function Leaderboard() {
@@ -31,7 +33,7 @@ export function Leaderboard() {
       return data.map(entry => ({
         ...entry,
         username: entry.profiles?.username || 'Anonymous User'
-      })) as LeaderboardEntry[];
+      })) as (Omit<LeaderboardEntry, 'profiles'> & { username: string })[];
     },
   });
 
