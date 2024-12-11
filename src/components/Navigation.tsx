@@ -8,12 +8,25 @@ import { toast } from "sonner";
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
   const navigate = useNavigate();
   const isAdmin = true;
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setIsAuthenticated(!!session);
+      
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', session.user.id)
+          .single();
+        
+        setUsername(profile?.username || null);
+      } else {
+        setUsername(null);
+      }
     });
 
     return () => {
@@ -59,10 +72,13 @@ export function Navigation() {
               </Link>
             )}
             {isAuthenticated ? (
-              <Button variant="outline" size="sm" className="hover-lift" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Se déconnecter
-              </Button>
+              <div className="flex items-center gap-4">
+                <span className="text-rich-black/80">{username}</span>
+                <Button variant="outline" size="sm" className="hover-lift" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Se déconnecter
+                </Button>
+              </div>
             ) : (
               <Button variant="outline" size="sm" className="hover-lift" onClick={() => navigate("/login")}>
                 <User className="h-4 w-4 mr-2" />
@@ -120,6 +136,11 @@ export function Navigation() {
               >
                 Admin
               </Link>
+            )}
+            {isAuthenticated && (
+              <div className="px-3 py-2 text-rich-black/80">
+                {username}
+              </div>
             )}
             <div className="px-3 py-2">
               {isAuthenticated ? (

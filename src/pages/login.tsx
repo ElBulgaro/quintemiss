@@ -30,7 +30,10 @@ export default function Login() {
           if (!profile && !profileError) {
             const { error: createError } = await supabase
               .from('profiles')
-              .insert({ id: session.user.id });
+              .insert({
+                id: session.user.id,
+                username: session.user.user_metadata.username
+              });
 
             console.log('Profile creation attempt:', { createError });
 
@@ -76,11 +79,11 @@ export default function Login() {
     switch (error) {
       case 'user_already_exists':
         title = 'Account Exists';
-        description = 'This email is already registered. Please sign in instead.';
+        description = 'This username is already registered. Please sign in instead.';
         break;
       case 'invalid_credentials':
         title = 'Invalid Credentials';
-        description = 'Invalid email or password. Please try again.';
+        description = 'Invalid username or password. Please try again.';
         break;
       case 'user_not_found':
         title = 'Account Not Found';
@@ -135,8 +138,6 @@ export default function Login() {
             }}
             providers={[]}
             redirectTo={window.location.origin}
-            magicLink={true}
-            showLinks={true}
             view="sign_in"
           />
         </div>
