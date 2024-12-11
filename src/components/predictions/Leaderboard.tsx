@@ -10,29 +10,44 @@ interface LeaderboardEntry {
   perfect_match: boolean;
   profiles: {
     username: string | null;
-  } | null;
+  };
 }
 
 export function Leaderboard() {
   const { data: leaderboard, isLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get the scores
+      const { data: scores, error: scoresError } = await supabase
         .from('scores')
-        .select(`
-          user_id,
-          score,
-          perfect_match,
-          profiles!user_id(username)
-        `)
+        .select('user_id, score, perfect_match')
         .order('score', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
+      if (scoresError) throw scoresError;
 
-      return data.map(entry => ({
+      // Then get the usernames for these scores
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .in('id', scores.map(score => score.user_id));
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const combinedData = scores.map(score => {
+        const profile = profiles.find(p => p.id === score.user_id);
+        return {
+          ...score,
+          profiles: {
+            username: profile?.username
+          }
+        };
+      });
+
+      return combinedData.map(entry => ({
         ...entry,
-        username: entry.profiles?.username || 'Anonymous User'
+        username: entry.profiles.username || 'Anonymous User'
       })) as (Omit<LeaderboardEntry, 'profiles'> & { username: string })[];
     },
   });
