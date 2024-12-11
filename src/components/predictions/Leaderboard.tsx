@@ -8,7 +8,7 @@ interface LeaderboardEntry {
   user_id: string;
   score: number;
   perfect_match: boolean;
-  user: {
+  profiles: {
     username: string | null;
   } | null;
 }
@@ -23,7 +23,7 @@ export function Leaderboard() {
           user_id,
           score,
           perfect_match,
-          user:profiles!scores_user_id_fkey(username)
+          profiles!user_id(username)
         `)
         .order('score', { ascending: false })
         .limit(10);
@@ -32,8 +32,8 @@ export function Leaderboard() {
 
       return data.map(entry => ({
         ...entry,
-        username: entry.user?.username || 'Anonymous User'
-      })) as (Omit<LeaderboardEntry, 'user'> & { username: string })[];
+        username: entry.profiles?.username || 'Anonymous User'
+      })) as (Omit<LeaderboardEntry, 'profiles'> & { username: string })[];
     },
   });
 
