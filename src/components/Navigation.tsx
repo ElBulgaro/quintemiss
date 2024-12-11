@@ -11,7 +11,6 @@ export function Navigation() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
   const { showOfficialPhoto, toggleImage } = useImageToggleStore();
-  // Temporary mock admin state - you'll need to integrate this with your auth system
   const isAdmin = true;
 
   useEffect(() => {
@@ -66,6 +65,7 @@ export function Navigation() {
               size="icon"
               onClick={toggleImage}
               className="hover:bg-gold/10"
+              title={showOfficialPhoto ? "Voir en maillot" : "Voir en costume"}
             >
               <Shirt className={`h-5 w-5 ${showOfficialPhoto ? 'text-gold' : 'text-rich-black/60'}`} />
             </Button>
@@ -89,6 +89,7 @@ export function Navigation() {
               size="icon"
               onClick={toggleImage}
               className="hover:bg-gold/10"
+              title={showOfficialPhoto ? "Voir en maillot" : "Voir en costume"}
             >
               <Shirt className={`h-5 w-5 ${showOfficialPhoto ? 'text-gold' : 'text-rich-black/60'}`} />
             </Button>
