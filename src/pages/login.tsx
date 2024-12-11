@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import bcrypt from "bcryptjs";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,74 +15,79 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        try {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select()
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (!profile && !profileError) {
-            const { error: createError } = await supabase
-              .from('profiles')
-              .insert({
-                id: session.user.id,
-                username: username
-              });
-
-            if (createError) throw createError;
-          } else if (profileError) {
-            throw profileError;
-          }
-
-          navigate("/predictions");
-        } catch (error) {
-          console.error('Error handling profile:', error);
-          toast.error("Error setting up profile. Please try again.");
-        }
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate, username]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       if (isSignUp) {
-        // For signup, create a new user
-        const { data, error } = await supabase.auth.signUp({
-          email: `${username.toLowerCase()}@placeholder.com`,
-          password,
-          options: {
-            data: {
-              username
-            }
-          }
-        });
+        // Check if username already exists
+        const { data: existingUser } = await supabase
+          .from('auth_users')
+          .select()
+          .eq('username', username)
+          .single();
 
-        if (error) throw error;
-
-        if (data.user) {
-          toast.success("Account created successfully!");
-          setIsSignUp(false);
+        if (existingUser) {
+          toast.error("Username already taken");
+          return;
         }
-      } else {
-        // For login, authenticate existing user
-        const { error } = await supabase.auth.signInWithPassword({
-          email: `${username.toLowerCase()}@placeholder.com`,
-          password
-        });
 
-        if (error) throw error;
+        // Hash password and create new user
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const { error: createError } = await supabase
+          .from('auth_users')
+          .insert({
+            username,
+            password_hash: hashedPassword
+          });
+
+        if (createError) throw createError;
+
+        toast.success("Account created successfully!");
+        setIsSignUp(false);
+      } else {
+        // Login flow
+        const { data: user, error: loginError } = await supabase
+          .from('auth_users')
+          .select()
+          .eq('username', username)
+          .single();
+
+        if (loginError || !user) {
+          toast.error("Invalid username or password");
+          return;
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password_hash);
+        
+        if (!isValidPassword) {
+          toast.error("Invalid username or password");
+          return;
+        }
+
+        // Create profile if it doesn't exist
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!profile && !profileError) {
+          const { error: createProfileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              username: username
+            });
+
+          if (createProfileError) throw createProfileError;
+        }
+
         toast.success("Logged in successfully!");
+        navigate("/predictions");
       }
     } catch (error: any) {
       console.error('Auth error:', error);
