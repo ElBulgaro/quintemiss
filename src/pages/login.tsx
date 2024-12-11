@@ -1,8 +1,7 @@
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,8 +9,6 @@ import { useState } from "react";
 
 export default function Login() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [username, setUsername] = useState("");
@@ -43,11 +40,7 @@ export default function Login() {
           navigate("/predictions");
         } catch (error) {
           console.error('Error handling profile:', error);
-          toast({
-            variant: "destructive",
-            title: "Error Setting Up Profile",
-            description: "There was an error setting up your profile. Please try again.",
-          });
+          toast.error("Error setting up profile. Please try again.");
         }
       }
     });
@@ -55,51 +48,44 @@ export default function Login() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast, username]);
+  }, [navigate, username]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const authAction = isSignUp ? 
-        supabase.auth.signUp({
-          email: `${username}@placeholder.com`,
+      if (isSignUp) {
+        // For signup, create a new user
+        const { data, error } = await supabase.auth.signUp({
+          email: `${username.toLowerCase()}@placeholder.com`,
           password,
           options: {
             data: {
               username
             }
           }
-        }) :
-        supabase.auth.signInWithPassword({
-          email: `${username}@placeholder.com`,
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          toast.success("Account created successfully!");
+          setIsSignUp(false);
+        }
+      } else {
+        // For login, authenticate existing user
+        const { error } = await supabase.auth.signInWithPassword({
+          email: `${username.toLowerCase()}@placeholder.com`,
           password
         });
 
-      const { error } = await authAction;
-
-      if (error) throw error;
-
-      if (isSignUp) {
-        toast({
-          title: "Account created successfully",
-          description: "You can now sign in with your credentials.",
-        });
-        setIsSignUp(false);
+        if (error) throw error;
+        toast.success("Logged in successfully!");
       }
     } catch (error: any) {
       console.error('Auth error:', error);
-      toast({
-        variant: "destructive",
-        title: "Authentication Error",
-        description: (
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            <span>{error.message}</span>
-          </div>
-        ),
-      });
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +111,7 @@ export default function Login() {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                placeholder="Enter your username"
+                placeholder="Choose a username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -137,7 +123,7 @@ export default function Login() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Choose a password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
