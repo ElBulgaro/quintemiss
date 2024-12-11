@@ -150,6 +150,7 @@ export default function Login() {
             providers={[]}
             redirectTo={window.location.origin}
             view="sign_in"
+            showLinks={false}
           />
         </div>
       </div>
