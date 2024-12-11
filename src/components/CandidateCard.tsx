@@ -43,8 +43,8 @@ export function CandidateCard({
     >
       <CandidateImage
         name={name}
-        image_url={image_url}
-        official_photo_url={official_photo_url}
+        imageUrl={image_url}
+        officialPhotoUrl={official_photo_url}
         isHovered={isHovered}
         selected={selected}
       />

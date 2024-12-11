@@ -6,9 +6,10 @@ interface CandidateImageProps {
   officialPhotoUrl?: string;
   name: string;
   selected?: boolean;
+  isHovered?: boolean;
 }
 
-export function CandidateImage({ imageUrl, officialPhotoUrl, name, selected }: CandidateImageProps) {
+export function CandidateImage({ imageUrl, officialPhotoUrl, name, selected, isHovered }: CandidateImageProps) {
   const { showOfficialPhoto } = useImageToggleStore();
   const displayUrl = showOfficialPhoto ? officialPhotoUrl : imageUrl;
 
