@@ -32,15 +32,22 @@ export function CandidatesView({
     },
   });
 
+  const getGridClasses = () => {
+    if (viewMode === 'list') return 'flex flex-col gap-4';
+    
+    // Base grid setup
+    const baseClasses = 'grid gap-4';
+    
+    // Grid columns based on viewMode
+    if (viewMode === 'grid-2') {
+      return `${baseClasses} grid-cols-1 sm:grid-cols-2`;
+    }
+    return `${baseClasses} grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`;
+  };
+
   if (isLoading) {
     return (
-      <div className={`${
-        viewMode === 'list'
-          ? 'flex flex-col gap-4'
-          : viewMode === 'grid-3'
-          ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-          : 'grid grid-cols-1 md:grid-cols-2 gap-4'
-      }`}>
+      <div className={getGridClasses()}>
         {[...Array(6)].map((_, index) => (
           <Skeleton key={index} className="h-24 w-full" />
         ))}
@@ -49,15 +56,7 @@ export function CandidatesView({
   }
 
   return (
-    <div
-      className={`${
-        viewMode === 'list'
-          ? 'flex flex-col gap-4'
-          : viewMode === 'grid-3'
-          ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-          : 'grid grid-cols-1 md:grid-cols-2 gap-4'
-      }`}
-    >
+    <div className={getGridClasses()}>
       {candidates?.map((candidate) => (
         <div
           key={candidate.id}
