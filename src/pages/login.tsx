@@ -33,10 +33,11 @@ export default function Login() {
           return;
         }
 
-        // Hash password and create new user
+        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        // Create new user in auth_users table
         const { data: newUser, error: createError } = await supabase
           .from('auth_users')
           .insert({
@@ -48,22 +49,15 @@ export default function Login() {
 
         if (createError) throw createError;
 
+        if (!newUser) {
+          throw new Error("Failed to create user");
+        }
+
         // Store user data in localStorage
         localStorage.setItem('user', JSON.stringify({
           id: newUser.id,
           username: newUser.username
         }));
-
-        // Create profile for the new user
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: newUser.id,
-            username: username,
-            is_admin: false
-          });
-
-        if (profileError) throw profileError;
 
         // Dispatch auth state change event
         window.dispatchEvent(new Event('auth-state-changed'));
