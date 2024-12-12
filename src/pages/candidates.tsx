@@ -29,19 +29,19 @@ export default function Candidates() {
               />
             </div>
 
-            <div className="flex items-center gap-2 bg-white/50 rounded-full px-6 py-2 shadow-sm">
-              <span className={`text-sm transition-colors ${showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60'}`}>
+            <div className="flex items-center gap-4 bg-white/80 rounded-full px-8 py-3 shadow-sm">
+              <span className={`text-base font-medium transition-colors ${showOfficialPhoto ? 'text-gold' : 'text-rich-black/40'}`}>
                 Portrait Officiel 🤵‍♀️
               </span>
               <Button 
                 variant="ghost" 
                 size="icon"
                 onClick={toggleImage}
-                className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-white shadow-sm"
+                className="hover:bg-gold/10 relative w-16 h-8 rounded-full bg-white shadow-md"
               >
-                <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-300 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
+                <div className={`absolute w-6 h-6 rounded-full bg-gold transition-all duration-300 ${showOfficialPhoto ? 'left-1.5' : 'left-9'}`} />
               </Button>
-              <span className={`text-sm transition-colors ${!showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60'}`}>
+              <span className={`text-base font-medium transition-colors ${!showOfficialPhoto ? 'text-gold' : 'text-rich-black/40'}`}>
                 👙 Maillot de bain
               </span>
             </div>
