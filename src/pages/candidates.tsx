@@ -18,7 +18,7 @@ export default function Candidates() {
           </h1>
           
           <div className="flex justify-center items-center gap-16">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
               <span 
                 onClick={toggleImage}
                 className={`text-sm transition-colors cursor-pointer select-none ${showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60 hover:text-rich-black/80'}`}
