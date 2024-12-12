@@ -18,14 +18,28 @@ export default function Login() {
     setIsLoading(true);
 
     try {
+      const email = `${username}@temp.com`;
+
       if (isSignUp) {
+        // Check if user already exists
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', username)
+          .single();
+
+        if (existingUser) {
+          toast.error("Ce nom d'utilisateur est déjà pris");
+          return;
+        }
+
         // Sign up flow
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: `${username}@temp.com`,
-          password: password,
+          email,
+          password,
           options: {
             data: {
-              username: username,
+              username,
             }
           }
         });
@@ -34,7 +48,7 @@ export default function Login() {
           if (signUpError.message.includes("email_provider_disabled")) {
             toast.error("L'authentification par email n'est pas activée. Veuillez contacter l'administrateur.");
           } else {
-            toast.error(signUpError.message);
+            toast.error("Erreur lors de l'inscription: " + signUpError.message);
           }
           return;
         }
@@ -44,15 +58,17 @@ export default function Login() {
       } else {
         // Sign in flow
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: `${username}@temp.com`,
-          password: password,
+          email,
+          password,
         });
 
         if (signInError) {
-          if (signInError.message.includes("email_provider_disabled")) {
+          if (signInError.message.includes("Invalid login credentials")) {
+            toast.error("Nom d'utilisateur ou mot de passe incorrect");
+          } else if (signInError.message.includes("email_provider_disabled")) {
             toast.error("L'authentification par email n'est pas activée. Veuillez contacter l'administrateur.");
           } else {
-            toast.error(signInError.message);
+            toast.error("Erreur lors de la connexion: " + signInError.message);
           }
           return;
         }
@@ -62,7 +78,7 @@ export default function Login() {
       }
     } catch (error: any) {
       console.error('Auth error:', error);
-      toast.error(error.message);
+      toast.error("Une erreur est survenue");
     } finally {
       setIsLoading(false);
     }
