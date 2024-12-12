@@ -5,7 +5,7 @@ import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
 import { Shirt } from "lucide-react";
 import { useImageToggleStore } from "@/store/useImageToggleStore";
-import type { Candidate } from "@/data/candidates";
+import type { Candidate } from "@/data/types";
 
 interface CandidatesViewProps {
   viewMode: 'grid-2' | 'grid-3' | 'list';
@@ -33,7 +33,7 @@ export function CandidatesView({
   });
 
   const getGridClasses = () => {
-    // List view
+    // List view - single column with compact cards
     if (viewMode === 'list') {
       return 'flex flex-col gap-3';
     }
@@ -41,14 +41,12 @@ export function CandidatesView({
     // Base grid setup with consistent gap
     const baseClasses = 'grid gap-3';
     
-    // Grid columns based on viewMode
-    // grid-2: Always 1 column on small mobile, 2 columns from sm breakpoint up
-    // grid-3: 1 column on mobile, then scales up
+    // Grid-2: Single column on mobile (<640px), two columns on larger screens
     if (viewMode === 'grid-2') {
       return `${baseClasses} grid-cols-1 sm:grid-cols-2`;
     }
     
-    // For grid-3, we use a single column on mobile, 2 columns on medium devices, 3 on large
+    // Grid-3: Single column on mobile (<640px), two columns on tablet (640px-1024px), three columns on desktop
     return `${baseClasses} grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`;
   };
 

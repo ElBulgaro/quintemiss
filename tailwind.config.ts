@@ -19,12 +19,12 @@ export default {
     },
     extend: {
       screens: {
-        'xs': '375px',
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1536px',
+        'xs': '375px',    // iPhone SE
+        'sm': '640px',    // Small tablets and large phones (iPhone XR etc)
+        'md': '768px',    // Tablets
+        'lg': '1024px',   // Small laptops
+        'xl': '1280px',   // Laptops and desktops
+        '2xl': '1536px',  // Large screens
       },
       colors: {
         gold: "#D4AF37",
