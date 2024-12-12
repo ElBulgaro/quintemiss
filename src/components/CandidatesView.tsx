@@ -33,15 +33,22 @@ export function CandidatesView({
   });
 
   const getGridClasses = () => {
-    if (viewMode === 'list') return 'flex flex-col gap-4';
+    // List view
+    if (viewMode === 'list') {
+      return 'flex flex-col gap-3';
+    }
     
-    // Base grid setup
-    const baseClasses = 'grid gap-4';
+    // Base grid setup with consistent gap
+    const baseClasses = 'grid gap-3';
     
     // Grid columns based on viewMode
+    // grid-2: Always 1 column on small mobile, 2 columns from sm breakpoint up
+    // grid-3: 1 column on mobile, then scales up
     if (viewMode === 'grid-2') {
       return `${baseClasses} grid-cols-1 sm:grid-cols-2`;
     }
+    
+    // For grid-3, we use a single column on mobile, 2 columns on medium devices, 3 on large
     return `${baseClasses} grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`;
   };
 
@@ -49,7 +56,10 @@ export function CandidatesView({
     return (
       <div className={getGridClasses()}>
         {[...Array(6)].map((_, index) => (
-          <Skeleton key={index} className="h-24 w-full" />
+          <Skeleton 
+            key={index} 
+            className={viewMode === 'list' ? "h-24" : "h-[400px]"}
+          />
         ))}
       </div>
     );
