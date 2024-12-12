@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, User, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { NavigationLinks } from "./navigation/NavigationLinks";
+import { UserMenu } from "./navigation/UserMenu";
+import { MobileMenu } from "./navigation/MobileMenu";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,7 +15,6 @@ export function Navigation() {
   const isAdmin = true;
 
   useEffect(() => {
-    // Check initial auth state from Supabase, not localStorage
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -27,7 +28,6 @@ export function Navigation() {
           setIsAuthenticated(true);
           setUsername(profile.username);
         } else {
-          // If no profile found, clear auth state
           handleLogout();
         }
       } else {
@@ -38,7 +38,6 @@ export function Navigation() {
 
     checkAuth();
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
@@ -65,20 +64,20 @@ export function Navigation() {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      // Clear local storage
       localStorage.removeItem('user');
       localStorage.removeItem('predictions');
-      // Update state
       setIsAuthenticated(false);
       setUsername(null);
-      // Show success message
       toast.success("Déconnexion réussie");
-      // Navigate to home
       navigate("/");
     } catch (error) {
       console.error("Error logging out:", error);
       toast.error("Erreur lors de la déconnexion");
     }
+  };
+
+  const handleLogin = () => {
+    navigate("/login");
   };
 
   return (
@@ -93,34 +92,13 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/candidates" className="text-rich-black/80 hover:text-rich-black transition-colors">
-              Candidates
-            </Link>
-            <Link to="/predictions" className="text-rich-black/80 hover:text-rich-black transition-colors">
-              Predictions
-            </Link>
-            <Link to="/leaderboard" className="text-rich-black/80 hover:text-rich-black transition-colors">
-              Leaderboard
-            </Link>
-            {isAdmin && (
-              <Link to="/admin/candidates" className="text-rich-black/80 hover:text-rich-black transition-colors">
-                Admin
-              </Link>
-            )}
-            {isAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <span className="text-rich-black/80">{username}</span>
-                <Button variant="outline" size="sm" className="hover-lift" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Se déconnecter
-                </Button>
-              </div>
-            ) : (
-              <Button variant="outline" size="sm" className="hover-lift" onClick={() => navigate("/login")}>
-                <User className="h-4 w-4 mr-2" />
-                Se connecter
-              </Button>
-            )}
+            <NavigationLinks isAdmin={isAdmin} />
+            <UserMenu
+              isAuthenticated={isAuthenticated}
+              username={username}
+              onLogout={handleLogout}
+              onLogin={handleLogin}
+            />
           </div>
 
           {/* Mobile menu button */}
@@ -141,58 +119,14 @@ export function Navigation() {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden bg-white border-b">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link
-              to="/candidates"
-              className="block px-3 py-2 text-rich-black/80 hover:text-rich-black transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Candidates
-            </Link>
-            <Link
-              to="/predictions"
-              className="block px-3 py-2 text-rich-black/80 hover:text-rich-black transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Predictions
-            </Link>
-            <Link
-              to="/leaderboard"
-              className="block px-3 py-2 text-rich-black/80 hover:text-rich-black transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Leaderboard
-            </Link>
-            {isAdmin && (
-              <Link
-                to="/admin/candidates"
-                className="block px-3 py-2 text-rich-black/80 hover:text-rich-black transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Admin
-              </Link>
-            )}
-            {isAuthenticated && (
-              <div className="px-3 py-2 text-rich-black/80">
-                {username}
-              </div>
-            )}
-            <div className="px-3 py-2">
-              {isAuthenticated ? (
-                <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Se déconnecter
-                </Button>
-              ) : (
-                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate("/login")}>
-                  <User className="h-4 w-4 mr-2" />
-                  Se connecter
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
+        <MobileMenu
+          isAdmin={isAdmin}
+          isAuthenticated={isAuthenticated}
+          username={username}
+          onClose={() => setIsOpen(false)}
+          onLogout={handleLogout}
+          onLogin={handleLogin}
+        />
       )}
     </nav>
   );
