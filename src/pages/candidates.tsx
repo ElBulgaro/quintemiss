@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { CandidatesGrid } from "@/components/CandidatesGrid";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { useImageToggleStore } from "@/store/useImageToggleStore";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { ColumnToggle } from "@/components/ColumnToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 
