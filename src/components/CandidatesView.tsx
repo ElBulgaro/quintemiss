@@ -41,13 +41,13 @@ export function CandidatesView({
     // Base grid setup with consistent gap
     const baseClasses = 'grid gap-3';
     
-    // Grid-2: Single column on mobile (<640px), two columns on larger screens
+    // Grid-2: Always two columns, even on mobile
     if (viewMode === 'grid-2') {
-      return `${baseClasses} grid-cols-1 sm:grid-cols-2`;
+      return `${baseClasses} grid-cols-2`;
     }
     
-    // Grid-3: Single column on mobile (<640px), two columns on tablet (640px-1024px), three columns on desktop
-    return `${baseClasses} grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`;
+    // Grid-3: Two columns on mobile, three columns on desktop
+    return `${baseClasses} grid-cols-2 lg:grid-cols-3`;
   };
 
   if (isLoading) {
