@@ -32,6 +32,8 @@ export function SemiFinalistSelection({
       const { data: officialResult, error: resultError } = await supabase
         .from('official_results')
         .insert({
+          semi_finalists: updatedSemiFinalists,
+          final_ranking: [], // Add required field
           submitted_at: new Date().toISOString(),
         })
         .select('id')

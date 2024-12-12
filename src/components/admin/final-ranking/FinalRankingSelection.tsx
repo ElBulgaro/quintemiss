@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { FinalRankingCard } from "./FinalRankingCard";
 import { useFinalRanking } from "./useFinalRanking";
 import type { Candidate } from "@/data/types";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FinalRankingSelectionProps {
   candidates: Candidate[];
@@ -40,7 +42,20 @@ export function FinalRankingSelection({
   };
 
   const handleSaveResults = async () => {
-    const success = await saveFinalRanking(finalRanking);
+    // Get the latest official result ID
+    const { data: latestResult } = await supabase
+      .from('official_results')
+      .select('id')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (!latestResult?.id) {
+      toast.error("No official result found");
+      return;
+    }
+
+    const success = await saveFinalRanking(finalRanking, latestResult.id);
     if (success) {
       onSaveResults();
     }
