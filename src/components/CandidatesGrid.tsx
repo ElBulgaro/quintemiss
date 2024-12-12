@@ -6,9 +6,10 @@ import { Skeleton } from "./ui/skeleton";
 
 interface CandidatesGridProps {
   searchQuery?: string;
+  singleColumn?: boolean;
 }
 
-export function CandidatesGrid({ searchQuery = "" }: CandidatesGridProps) {
+export function CandidatesGrid({ searchQuery = "", singleColumn = false }: CandidatesGridProps) {
   const { data: candidates, isLoading } = useQuery({
     queryKey: ['candidates'],
     queryFn: async () => {
@@ -31,7 +32,7 @@ export function CandidatesGrid({ searchQuery = "" }: CandidatesGridProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={`grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
         {[...Array(6)].map((_, index) => (
           <div key={index} className="space-y-3">
             <Skeleton className="h-[400px] w-full" />
@@ -45,7 +46,7 @@ export function CandidatesGrid({ searchQuery = "" }: CandidatesGridProps) {
 
   return (
     <motion.div 
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+      className={`grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}

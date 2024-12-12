@@ -4,10 +4,14 @@ import { Search } from "lucide-react";
 import { useImageToggleStore } from "@/store/useImageToggleStore";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { ColumnToggle } from "@/components/ColumnToggle";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Candidates() {
   const { showOfficialPhoto, toggleImage } = useImageToggleStore();
   const [searchQuery, setSearchQuery] = useState("");
+  const [singleColumn, setSingleColumn] = useState(true);
+  const isMobile = useIsMobile();
 
   return (
     <div className="min-h-screen bg-cream pt-16">
@@ -17,7 +21,20 @@ export default function Candidates() {
             Candidates Miss France 2024
           </h1>
           
-          <div className="flex justify-center items-center gap-16">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
+            {isMobile && (
+              <div className="w-full max-w-xs">
+                <Input
+                  type="text"
+                  placeholder="Rechercher une candidate..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-gold/30 focus:border-gold/50"
+                  startIcon={<Search className="h-4 w-4 text-rich-black/40" />}
+                />
+              </div>
+            )}
+            
             <div className="flex items-center gap-3">
               <span 
                 onClick={toggleImage}
@@ -29,7 +46,7 @@ export default function Candidates() {
                 variant="ghost" 
                 size="icon"
                 onClick={toggleImage}
-                className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-rich-black/5 transition-all duration-300"
+                className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-rich-black/5 transition-all duration-500"
               >
                 <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-500 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
               </Button>
@@ -41,22 +58,30 @@ export default function Candidates() {
               </span>
             </div>
 
-            <div className="relative w-full max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rich-black/40" />
-              <Input
-                type="text"
-                placeholder="Rechercher une candidate..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-gold/30 focus:border-gold/50"
-              />
-            </div>
+            {isMobile && (
+              <div className="flex justify-center">
+                <ColumnToggle singleColumn={singleColumn} onToggle={setSingleColumn} />
+              </div>
+            )}
+
+            {!isMobile && (
+              <div className="relative w-full max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rich-black/40" />
+                <Input
+                  type="text"
+                  placeholder="Rechercher une candidate..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-gold/30 focus:border-gold/50"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       <div className="py-8 animate-fade-up">
-        <CandidatesGrid searchQuery={searchQuery} />
+        <CandidatesGrid searchQuery={searchQuery} singleColumn={isMobile && singleColumn} />
       </div>
     </div>
   );
