@@ -32,7 +32,7 @@ export const SelectedCandidates = ({
   );
 
   return (
-    <div className="glass-card p-6 rounded-lg">
+    <div className="p-6 rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-rich-black">Votre Top 5</h2>
         <Button
