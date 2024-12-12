@@ -54,10 +54,10 @@ export function CandidateCard({
         selected={selected}
         onClick={onClick}
       />
-      <div className="p-6 space-y-4">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-rich-black/60 uppercase tracking-wider">{region}</p>
-          <h3 className="font-medium text-rich-black">{name} - {age} ans</h3>
+      <div className="p-4 space-y-3">
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium text-rich-black/60 uppercase tracking-wider">{region}</p>
+          <h3 className="text-sm font-medium text-rich-black">{name} - {age} ans</h3>
           <CandidateSocialLinks
             instagram={instagram}
             portrait_url={portrait_url}
@@ -65,14 +65,14 @@ export function CandidateCard({
         </div>
         {bio && (
           <div className="space-y-2">
-            <p className={`text-sm text-rich-black/80 leading-relaxed ${!isExpanded ? 'line-clamp-2' : ''}`}>
+            <p className={`text-xs text-rich-black/80 leading-relaxed ${!isExpanded ? 'line-clamp-2' : ''}`}>
               {bio}
             </p>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs text-rich-black/60 hover:text-rich-black flex items-center gap-1"
+              className="text-xs text-rich-black/60 hover:text-rich-black flex items-center gap-1 h-6 px-2"
             >
               {isExpanded ? (
                 <>
