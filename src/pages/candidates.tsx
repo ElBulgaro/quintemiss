@@ -12,10 +12,32 @@ export default function Candidates() {
   const [searchQuery, setSearchQuery] = useState("");
   const [singleColumn, setSingleColumn] = useState(false);
   const isMobile = useIsMobile();
+  const [isNavVisible, setIsNavVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Handle scroll events to coordinate with Navigation component
+  useState(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < lastScrollY || currentScrollY < 50) {
+        setIsNavVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsNavVisible(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   return (
     <div className="min-h-screen bg-cream pt-16">
-      <div className="sticky top-16 z-10 bg-cream/95 backdrop-blur-sm shadow-sm">
+      <div 
+        className={`sticky ${isNavVisible ? 'top-16' : 'top-0'} z-10 bg-cream/95 backdrop-blur-sm shadow-sm transition-[top] duration-300`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <h1 className="text-2xl md:text-3xl font-bold text-center font-playfair text-gold animate-fade-down whitespace-nowrap">
             Candidates Miss France 2024
