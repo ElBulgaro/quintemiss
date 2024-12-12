@@ -17,7 +17,7 @@ export default function Candidates() {
     <div className="min-h-screen bg-cream pt-16">
       <div className="sticky top-16 z-10 bg-cream/95 backdrop-blur-sm shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-center font-playfair text-gold animate-fade-down">
+          <h1 className="text-2xl md:text-3xl font-bold text-center font-playfair text-gold animate-fade-down whitespace-nowrap">
             Candidates Miss France 2024
           </h1>
           
