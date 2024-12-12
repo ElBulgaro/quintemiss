@@ -10,9 +10,9 @@ export default function Candidates() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="min-h-screen bg-cream">
-      <div className="sticky top-16 z-10 bg-cream/95 backdrop-blur-sm py-8 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div className="min-h-screen bg-cream pt-16"> {/* Added pt-16 to account for the fixed navbar */}
+      <div className="sticky top-16 z-10 bg-cream/95 backdrop-blur-sm shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8"> {/* Increased vertical padding */}
           <h1 className="text-3xl md:text-4xl font-bold text-center font-playfair text-gold">
             Candidates Miss France 2024
           </h1>
@@ -29,7 +29,7 @@ export default function Candidates() {
                 variant="ghost" 
                 size="icon"
                 onClick={toggleImage}
-                className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-white/50 shadow-sm"
+                className="hover:bg-gold/10 relative w-14 h-7 rounded-full"
               >
                 <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-300 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
               </Button>
