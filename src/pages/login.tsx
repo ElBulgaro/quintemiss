@@ -21,7 +21,7 @@ export default function Login() {
       if (isSignUp) {
         // Sign up flow
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: `${username}@temp.com`, // Using temporary email since we don't collect emails
+          email: `${username}@temp.com`,
           password: password,
           options: {
             data: {
@@ -30,7 +30,14 @@ export default function Login() {
           }
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          if (signUpError.message.includes("email_provider_disabled")) {
+            toast.error("L'authentification par email n'est pas activée. Veuillez contacter l'administrateur.");
+          } else {
+            toast.error(signUpError.message);
+          }
+          return;
+        }
 
         toast.success("Compte créé avec succès!");
         navigate("/predictions");
@@ -41,7 +48,14 @@ export default function Login() {
           password: password,
         });
 
-        if (signInError) throw signInError;
+        if (signInError) {
+          if (signInError.message.includes("email_provider_disabled")) {
+            toast.error("L'authentification par email n'est pas activée. Veuillez contacter l'administrateur.");
+          } else {
+            toast.error(signInError.message);
+          }
+          return;
+        }
 
         toast.success("Connexion réussie!");
         navigate("/predictions");
