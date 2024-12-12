@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Navigation } from "@/components/Navigation";
 import Login from "./pages/login";
 import Predictions from "./pages/predictions";
+import Candidates from "./pages/candidates";
 import AdminCandidates from "./pages/admin/candidates";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<Navigate to="/predictions" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/predictions" element={<Predictions />} />
+        <Route path="/candidates" element={<Candidates />} />
         <Route path="/admin/candidates" element={<AdminCandidates />} />
       </Routes>
     </AnimatePresence>
