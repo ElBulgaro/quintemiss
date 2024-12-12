@@ -17,11 +17,11 @@ export default function Candidates() {
             Candidates Miss France 2024
           </h1>
           
-          <div className="flex justify-center items-center gap-6">
-            <div className="flex items-center gap-4 bg-white/80 rounded-full px-8 py-3 shadow-sm">
+          <div className="flex justify-center items-center gap-8">
+            <div className="flex items-center gap-6">
               <span 
                 onClick={toggleImage}
-                className={`text-base font-medium transition-colors cursor-pointer select-none ${showOfficialPhoto ? 'text-gold' : 'text-rich-black/40'}`}
+                className={`text-sm transition-colors cursor-pointer select-none ${showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60 hover:text-rich-black/80'}`}
               >
                 Portrait Officiel 🤵‍♀️
               </span>
@@ -29,13 +29,13 @@ export default function Candidates() {
                 variant="ghost" 
                 size="icon"
                 onClick={toggleImage}
-                className="hover:bg-gold/10 relative w-16 h-8 rounded-full bg-white shadow-md"
+                className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-white/50 shadow-sm"
               >
-                <div className={`absolute w-6 h-6 rounded-full bg-gold transition-all duration-300 ${showOfficialPhoto ? 'left-1.5' : 'left-9'}`} />
+                <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-300 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
               </Button>
               <span 
                 onClick={toggleImage}
-                className={`text-base font-medium transition-colors cursor-pointer select-none ${!showOfficialPhoto ? 'text-gold' : 'text-rich-black/40'}`}
+                className={`text-sm transition-colors cursor-pointer select-none ${!showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60 hover:text-rich-black/80'}`}
               >
                 👙 Maillot de bain
               </span>
