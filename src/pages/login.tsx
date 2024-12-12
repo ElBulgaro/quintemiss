@@ -21,7 +21,7 @@ export default function Login() {
       const email = `${username}@temp.com`;
 
       if (isSignUp) {
-        // Check if user already exists
+        // Check if user exists in auth.users (through profiles)
         const { data: existingUser } = await supabase
           .from('profiles')
           .select('username')
@@ -30,6 +30,7 @@ export default function Login() {
 
         if (existingUser) {
           toast.error("Ce nom d'utilisateur est déjà pris");
+          setIsLoading(false);
           return;
         }
 
@@ -50,26 +51,54 @@ export default function Login() {
           } else {
             toast.error("Erreur lors de l'inscription: " + signUpError.message);
           }
+          setIsLoading(false);
+          return;
+        }
+
+        // After successful signup, try to sign in immediately
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) {
+          toast.error("Compte créé mais erreur lors de la connexion automatique. Veuillez vous connecter manuellement.");
+          setIsSignUp(false);
+          setIsLoading(false);
           return;
         }
 
         toast.success("Compte créé avec succès!");
         navigate("/predictions");
       } else {
+        // For login, first check if the user exists
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', username)
+          .single();
+
+        if (!existingUser) {
+          toast.error("Ce nom d'utilisateur n'existe pas");
+          setIsLoading(false);
+          return;
+        }
+
         // Sign in flow
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (signInError) {
           if (signInError.message.includes("Invalid login credentials")) {
-            toast.error("Nom d'utilisateur ou mot de passe incorrect");
+            toast.error("Mot de passe incorrect");
           } else if (signInError.message.includes("email_provider_disabled")) {
             toast.error("L'authentification par email n'est pas activée. Veuillez contacter l'administrateur.");
           } else {
             toast.error("Erreur lors de la connexion: " + signInError.message);
           }
+          setIsLoading(false);
           return;
         }
 
