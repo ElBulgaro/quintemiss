@@ -56,14 +56,14 @@ export default function Candidates() {
               </div>
             )}
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {isMobile ? (
                 <Button 
-                  variant="ghost"
+                  variant="outline"
                   onClick={toggleImage}
-                  className="text-sm transition-colors"
+                  className="text-xs h-8 px-2 shadow-sm hover:shadow-md transition-all bg-white/50"
                 >
-                  {showOfficialPhoto ? '👙 Maillot de bain' : '🤵‍♀️ Portrait officiel'}
+                  {showOfficialPhoto ? '👙 Maillot' : '🤵‍♀️ Portrait'}
                 </Button>
               ) : (
                 <>
@@ -89,13 +89,11 @@ export default function Candidates() {
                   </span>
                 </>
               )}
-            </div>
 
-            {isMobile && (
-              <div className="flex justify-center">
+              {isMobile && (
                 <ColumnToggle singleColumn={singleColumn} onToggle={setSingleColumn} />
-              </div>
-            )}
+              )}
+            </div>
 
             {!isMobile && (
               <div className="relative w-full max-w-xs">
