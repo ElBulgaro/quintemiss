@@ -1,6 +1,6 @@
 import { CandidatesGrid } from "@/components/CandidatesGrid";
 import { Button } from "@/components/ui/button";
-import { Shirt, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useImageToggleStore } from "@/store/useImageToggleStore";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -49,7 +49,7 @@ export default function Candidates() {
         </div>
       </div>
 
-      <div className="py-6">
+      <div className="pt-8 pb-6">
         <CandidatesGrid searchQuery={searchQuery} />
       </div>
     </div>
