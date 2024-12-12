@@ -10,7 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export default function Candidates() {
   const { showOfficialPhoto, toggleImage } = useImageToggleStore();
   const [searchQuery, setSearchQuery] = useState("");
-  const [singleColumn, setSingleColumn] = useState(true);
+  const [singleColumn, setSingleColumn] = useState(false); // Default to two columns
   const isMobile = useIsMobile();
 
   return (
