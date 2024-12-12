@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ export default function Login() {
           .single();
 
         if (existingUser) {
-          toast.error("Username already taken");
+          toast.error("Ce nom d'utilisateur est déjà pris");
           setIsLoading(false);
           return;
         }
@@ -48,6 +48,12 @@ export default function Login() {
 
         if (createError) throw createError;
 
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify({
+          id: newUser.id,
+          username: newUser.username
+        }));
+
         // Create profile for the new user
         const { error: profileError } = await supabase
           .from('profiles')
@@ -59,16 +65,10 @@ export default function Login() {
 
         if (profileError) throw profileError;
 
-        // Set session data in localStorage
-        localStorage.setItem('user', JSON.stringify({
-          id: newUser.id,
-          username: username
-        }));
-
-        // Emit auth state change event
+        // Dispatch auth state change event
         window.dispatchEvent(new Event('auth-state-changed'));
-
-        toast.success("Account created successfully!");
+        
+        toast.success("Compte créé avec succès!");
         navigate("/predictions");
       } else {
         // Login flow
@@ -79,7 +79,7 @@ export default function Login() {
           .single();
 
         if (loginError || !user) {
-          toast.error("Invalid username or password");
+          toast.error("Nom d'utilisateur ou mot de passe incorrect");
           setIsLoading(false);
           return;
         }
@@ -87,21 +87,21 @@ export default function Login() {
         const isValidPassword = await bcrypt.compare(password, user.password_hash);
         
         if (!isValidPassword) {
-          toast.error("Invalid username or password");
+          toast.error("Nom d'utilisateur ou mot de passe incorrect");
           setIsLoading(false);
           return;
         }
 
-        // Set session data in localStorage
+        // Store user data in localStorage
         localStorage.setItem('user', JSON.stringify({
           id: user.id,
-          username: username
+          username: user.username
         }));
 
-        // Emit auth state change event
+        // Dispatch auth state change event
         window.dispatchEvent(new Event('auth-state-changed'));
 
-        toast.success("Logged in successfully!");
+        toast.success("Connexion réussie!");
         navigate("/predictions");
       }
     } catch (error: any) {
@@ -117,22 +117,22 @@ export default function Login() {
       <div className="max-w-md mx-auto px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-rich-black mb-4">
-            {isSignUp ? "Create Account" : "Welcome Back"}
+            {isSignUp ? "Créer un compte" : "Connexion"}
           </h1>
           <p className="text-rich-black/60">
             {isSignUp 
-              ? "Sign up to start making predictions for Miss France 2024"
-              : "Sign in to save your predictions for Miss France 2024"}
+              ? "Inscrivez-vous pour commencer à faire vos prédictions"
+              : "Connectez-vous pour sauvegarder vos prédictions"}
           </p>
         </div>
         
         <div className="glass-card p-6 rounded-lg">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Nom d'utilisateur</Label>
               <Input
                 id="username"
-                placeholder="Choose a username"
+                placeholder="Choisissez un nom d'utilisateur"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -140,11 +140,11 @@ export default function Login() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Choose a password"
+                placeholder="Choisissez un mot de passe"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -156,7 +156,7 @@ export default function Login() {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
+              {isLoading ? "Chargement..." : (isSignUp ? "S'inscrire" : "Se connecter")}
             </Button>
           </form>
 
@@ -166,8 +166,8 @@ export default function Login() {
               className="text-sm text-rich-black/60 hover:text-rich-black"
             >
               {isSignUp 
-                ? "Already have an account? Sign in" 
-                : "Don't have an account? Sign up"}
+                ? "Déjà un compte ? Connectez-vous" 
+                : "Pas encore de compte ? Inscrivez-vous"}
             </button>
           </div>
         </div>
