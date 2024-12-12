@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import bcrypt from "bcryptjs";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,80 +19,29 @@ export default function Login() {
 
     try {
       if (isSignUp) {
-        // Check if username already exists
-        const { data: existingUser } = await supabase
-          .from('auth_users')
-          .select()
-          .eq('username', username)
-          .single();
+        // Sign up flow
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: `${username}@temp.com`, // Using temporary email since we don't collect emails
+          password: password,
+          options: {
+            data: {
+              username: username,
+            }
+          }
+        });
 
-        if (existingUser) {
-          toast.error("Ce nom d'utilisateur est déjà pris");
-          setIsLoading(false);
-          return;
-        }
+        if (signUpError) throw signUpError;
 
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // Create new user in auth_users table
-        const { data: newUser, error: createError } = await supabase
-          .from('auth_users')
-          .insert({
-            username,
-            password_hash: hashedPassword
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-
-        if (!newUser) {
-          throw new Error("Failed to create user");
-        }
-
-        // Store user data in localStorage
-        localStorage.setItem('user', JSON.stringify({
-          id: newUser.id,
-          username: newUser.username
-        }));
-
-        // Dispatch auth state change event
-        window.dispatchEvent(new Event('auth-state-changed'));
-        
         toast.success("Compte créé avec succès!");
         navigate("/predictions");
       } else {
-        // Login flow
-        const { data: user, error: loginError } = await supabase
-          .from('auth_users')
-          .select()
-          .eq('username', username)
-          .single();
+        // Sign in flow
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: `${username}@temp.com`,
+          password: password,
+        });
 
-        if (loginError || !user) {
-          toast.error("Nom d'utilisateur ou mot de passe incorrect");
-          setIsLoading(false);
-          return;
-        }
-
-        const isValidPassword = await bcrypt.compare(password, user.password_hash);
-        
-        if (!isValidPassword) {
-          toast.error("Nom d'utilisateur ou mot de passe incorrect");
-          setIsLoading(false);
-          return;
-        }
-
-        // Store user data in localStorage
-        localStorage.setItem('user', JSON.stringify({
-          id: user.id,
-          username: user.username
-        }));
-
-        // Dispatch auth state change event
-        window.dispatchEvent(new Event('auth-state-changed'));
+        if (signInError) throw signInError;
 
         toast.success("Connexion réussie!");
         navigate("/predictions");
