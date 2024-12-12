@@ -41,7 +41,11 @@ export function Navigation() {
 
   const handleLogout = () => {
     try {
+      // Clear user authentication
       localStorage.removeItem('user');
+      // Clear predictions
+      localStorage.removeItem('predictions');
+      // Dispatch auth state change event
       window.dispatchEvent(new Event('auth-state-changed'));
       toast.success("Déconnexion réussie");
       navigate("/");
