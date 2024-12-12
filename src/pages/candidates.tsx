@@ -44,7 +44,8 @@ export default function Candidates() {
           
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16 mt-6">
             {isMobile && (
-              <div className="w-full max-w-xs">
+              <div className="w-full max-w-xs relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rich-black/40 pointer-events-none" />
                 <Input
                   type="text"
                   placeholder="Rechercher une candidate..."
@@ -52,7 +53,6 @@ export default function Candidates() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-gold/30 focus:border-gold/50"
                 />
-                <Search className="absolute -translate-y-[30px] left-3 h-4 w-4 text-rich-black/40" />
               </div>
             )}
             
@@ -97,7 +97,7 @@ export default function Candidates() {
 
             {!isMobile && (
               <div className="relative w-full max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rich-black/40" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rich-black/40 pointer-events-none" />
                 <Input
                   type="text"
                   placeholder="Rechercher une candidate..."
