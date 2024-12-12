@@ -22,13 +22,18 @@ export default function Login() {
 
       if (isSignUp) {
         // Check if user exists in auth.users (through profiles)
-        const { data: existingUser } = await supabase
+        const { data: existingUsers, error: queryError } = await supabase
           .from('profiles')
           .select('username')
-          .eq('username', username)
-          .single();
+          .eq('username', username);
 
-        if (existingUser) {
+        if (queryError) {
+          toast.error("Erreur lors de la vérification du nom d'utilisateur");
+          setIsLoading(false);
+          return;
+        }
+
+        if (existingUsers && existingUsers.length > 0) {
           toast.error("Ce nom d'utilisateur est déjà pris");
           setIsLoading(false);
           return;
@@ -72,13 +77,18 @@ export default function Login() {
         navigate("/predictions");
       } else {
         // For login, first check if the user exists
-        const { data: existingUser } = await supabase
+        const { data: existingUsers, error: queryError } = await supabase
           .from('profiles')
           .select('username')
-          .eq('username', username)
-          .single();
+          .eq('username', username);
 
-        if (!existingUser) {
+        if (queryError) {
+          toast.error("Erreur lors de la vérification du nom d'utilisateur");
+          setIsLoading(false);
+          return;
+        }
+
+        if (!existingUsers || existingUsers.length === 0) {
           toast.error("Ce nom d'utilisateur n'existe pas");
           setIsLoading(false);
           return;
