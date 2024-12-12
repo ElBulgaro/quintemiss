@@ -17,18 +17,7 @@ export default function Candidates() {
             Candidates Miss France 2024
           </h1>
           
-          <div className="flex flex-col items-center space-y-4">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rich-black/40" />
-              <Input
-                type="text"
-                placeholder="Rechercher une candidate..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
+          <div className="flex justify-center items-center gap-6">
             <div className="flex items-center gap-4 bg-white/80 rounded-full px-8 py-3 shadow-sm">
               <span 
                 onClick={toggleImage}
@@ -50,6 +39,17 @@ export default function Candidates() {
               >
                 👙 Maillot de bain
               </span>
+            </div>
+
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rich-black/40" />
+              <Input
+                type="text"
+                placeholder="Rechercher une candidate..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
           </div>
         </div>
