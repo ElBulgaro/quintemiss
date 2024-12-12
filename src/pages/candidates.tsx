@@ -10,18 +10,18 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export default function Candidates() {
   const { showOfficialPhoto, toggleImage } = useImageToggleStore();
   const [searchQuery, setSearchQuery] = useState("");
-  const [singleColumn, setSingleColumn] = useState(false); // Default to two columns
+  const [singleColumn, setSingleColumn] = useState(false);
   const isMobile = useIsMobile();
 
   return (
     <div className="min-h-screen bg-cream pt-16">
       <div className="sticky top-16 z-10 bg-cream/95 backdrop-blur-sm shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-center font-playfair text-gold animate-fade-down mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-center font-playfair text-gold animate-fade-down">
             Candidates Miss France 2024
           </h1>
           
-          <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16 mt-6">
             {isMobile && (
               <div className="w-full max-w-xs">
                 <Input
