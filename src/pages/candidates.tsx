@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CandidatesGrid } from "@/components/CandidatesGrid";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -15,8 +15,7 @@ export default function Candidates() {
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  // Handle scroll events to coordinate with Navigation component
-  useState(() => {
+  useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
@@ -58,26 +57,38 @@ export default function Candidates() {
             )}
             
             <div className="flex items-center gap-3">
-              <span 
-                onClick={toggleImage}
-                className={`text-sm transition-colors cursor-pointer select-none ${showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60 hover:text-rich-black/80'}`}
-              >
-                Portrait Officiel 🤵‍♀️
-              </span>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={toggleImage}
-                className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-rich-black/5 transition-all duration-500"
-              >
-                <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-500 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
-              </Button>
-              <span 
-                onClick={toggleImage}
-                className={`text-sm transition-colors cursor-pointer select-none ${!showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60 hover:text-rich-black/80'}`}
-              >
-                👙 Maillot de bain
-              </span>
+              {isMobile ? (
+                <Button 
+                  variant="ghost"
+                  onClick={toggleImage}
+                  className="text-sm transition-colors"
+                >
+                  {showOfficialPhoto ? '👙 Maillot de bain' : '🤵‍♀️ Portrait officiel'}
+                </Button>
+              ) : (
+                <>
+                  <span 
+                    onClick={toggleImage}
+                    className={`text-sm transition-colors cursor-pointer select-none ${showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60 hover:text-rich-black/80'}`}
+                  >
+                    Portrait Officiel 🤵‍♀️
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={toggleImage}
+                    className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-rich-black/5 transition-all duration-500"
+                  >
+                    <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-500 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
+                  </Button>
+                  <span 
+                    onClick={toggleImage}
+                    className={`text-sm transition-colors cursor-pointer select-none ${!showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60 hover:text-rich-black/80'}`}
+                  >
+                    👙 Maillot de bain
+                  </span>
+                </>
+              )}
             </div>
 
             {isMobile && (
