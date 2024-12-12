@@ -25,7 +25,8 @@ export function CandidatesGrid({ searchQuery = "" }: CandidatesGridProps) {
 
   const filteredCandidates = candidates?.filter(candidate => 
     candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate.region.toLowerCase().includes(searchQuery.toLowerCase())
+    candidate.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (candidate.bio?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
 
   if (isLoading) {
