@@ -31,10 +31,10 @@ export function CandidatesView({
 
   const getGridClasses = () => {
     if (viewMode === 'list') {
-      return 'flex flex-col gap-3';
+      return 'flex flex-col gap-2';
     }
     
-    const baseClasses = 'grid gap-3';
+    const baseClasses = 'grid gap-4';
     
     if (viewMode === 'grid-2') {
       return `${baseClasses} grid-cols-2`;
