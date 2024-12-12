@@ -7,9 +7,17 @@ interface CandidateImageProps {
   name: string;
   selected?: boolean;
   isHovered?: boolean;
+  onClick?: () => void;
 }
 
-export function CandidateImage({ imageUrl, officialPhotoUrl, name, selected, isHovered }: CandidateImageProps) {
+export function CandidateImage({ 
+  imageUrl, 
+  officialPhotoUrl, 
+  name, 
+  selected, 
+  isHovered,
+  onClick 
+}: CandidateImageProps) {
   const { showOfficialPhoto } = useImageToggleStore();
   const displayUrl = showOfficialPhoto ? officialPhotoUrl : imageUrl;
 
@@ -24,7 +32,10 @@ export function CandidateImage({ imageUrl, officialPhotoUrl, name, selected, isH
   }
 
   return (
-    <div className="relative w-full pb-[133%] rounded-lg overflow-hidden group">
+    <div 
+      className="relative w-full pb-[133%] rounded-lg overflow-hidden group cursor-pointer"
+      onClick={onClick}
+    >
       <div className="absolute inset-0">
         <img
           src={displayUrl}

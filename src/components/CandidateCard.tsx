@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
 import { CandidateImage } from "./candidate/CandidateImage";
 import { CandidateSocialLinks } from "./candidate/CandidateSocialLinks";
 
@@ -18,6 +17,7 @@ interface CandidateCardProps {
 }
 
 export function CandidateCard({ 
+  id,
   name, 
   age, 
   region, 
@@ -35,7 +35,7 @@ export function CandidateCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`glass-card rounded-lg overflow-hidden hover-lift relative ${
+      className={`glass-card rounded-lg overflow-hidden ${
         selected ? "ring-2 ring-gold" : ""
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -48,15 +48,18 @@ export function CandidateCard({
         isHovered={isHovered}
         selected={selected}
       />
-      <div className="p-4 space-y-3">
+      <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-rich-black/60">{age} ans</span>
+          <div>
+            <h3 className="font-medium text-rich-black">{name}</h3>
+            <span className="text-sm text-rich-black/60">{age} ans • {region}</span>
+          </div>
           <CandidateSocialLinks
             instagram={instagram}
             portrait_url={portrait_url}
           />
         </div>
-        <p className="text-sm text-rich-black/80 line-clamp-3">{bio}</p>
+        <p className="text-sm text-rich-black/80 leading-relaxed">{bio}</p>
       </div>
     </motion.div>
   );

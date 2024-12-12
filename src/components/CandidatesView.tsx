@@ -2,10 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CandidateCard } from "@/components/CandidateCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "./ui/skeleton";
-import { Button } from "./ui/button";
-import { Shirt } from "lucide-react";
 import { useImageToggleStore } from "@/store/useImageToggleStore";
-import type { Candidate } from "@/data/types";
 
 interface CandidatesViewProps {
   viewMode: 'grid-2' | 'grid-3' | 'list';
@@ -18,7 +15,7 @@ export function CandidatesView({
   selectedCandidates,
   onCandidateSelect,
 }: CandidatesViewProps) {
-  const { showOfficialPhoto, toggleImage } = useImageToggleStore();
+  const { showOfficialPhoto } = useImageToggleStore();
   const { data: candidates, isLoading } = useQuery({
     queryKey: ['candidates'],
     queryFn: async () => {
@@ -33,20 +30,16 @@ export function CandidatesView({
   });
 
   const getGridClasses = () => {
-    // List view - single column with compact cards
     if (viewMode === 'list') {
       return 'flex flex-col gap-3';
     }
     
-    // Base grid setup with consistent gap
     const baseClasses = 'grid gap-3';
     
-    // Grid-2: Always two columns, even on mobile
     if (viewMode === 'grid-2') {
       return `${baseClasses} grid-cols-2`;
     }
     
-    // Grid-3: Two columns on mobile, three columns on desktop
     return `${baseClasses} grid-cols-2 lg:grid-cols-3`;
   };
 
@@ -66,11 +59,7 @@ export function CandidatesView({
   return (
     <div className={getGridClasses()}>
       {candidates?.map((candidate) => (
-        <div
-          key={candidate.id}
-          className="cursor-pointer"
-          onClick={() => onCandidateSelect(candidate.id)}
-        >
+        <div key={candidate.id}>
           {viewMode === 'list' ? (
             <div
               className={`flex items-center gap-4 p-4 rounded-lg ${
@@ -79,7 +68,10 @@ export function CandidatesView({
                   : 'bg-white/50 border-white/20'
               } border shadow-sm hover:shadow-md transition-all`}
             >
-              <div className="relative w-16 h-16 overflow-hidden rounded-full flex-shrink-0">
+              <div 
+                className="relative w-16 h-16 overflow-hidden rounded-full flex-shrink-0 cursor-pointer"
+                onClick={() => onCandidateSelect(candidate.id)}
+              >
                 <img
                   src={candidate.image_url}
                   alt={candidate.name}
@@ -95,6 +87,7 @@ export function CandidatesView({
             <CandidateCard
               {...candidate}
               selected={selectedCandidates.includes(candidate.id)}
+              onClick={() => onCandidateSelect(candidate.id)}
             />
           )}
         </div>
