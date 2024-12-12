@@ -30,8 +30,8 @@ export default function Candidates() {
             </div>
 
             <div className="flex items-center gap-2 bg-white/50 rounded-full px-6 py-2 shadow-sm">
-              <span className={`text-sm transition-colors ${!showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60'}`}>
-                👙 Maillot de bain
+              <span className={`text-sm transition-colors ${showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60'}`}>
+                Portrait Officiel 🤵‍♀️
               </span>
               <Button 
                 variant="ghost" 
@@ -39,10 +39,10 @@ export default function Candidates() {
                 onClick={toggleImage}
                 className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-white shadow-sm"
               >
-                <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-300 ${!showOfficialPhoto ? 'left-1' : 'left-8'}`} />
+                <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-300 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
               </Button>
-              <span className={`text-sm transition-colors ${showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60'}`}>
-                Portrait Officiel 🤵‍♀️
+              <span className={`text-sm transition-colors ${!showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60'}`}>
+                👙 Maillot de bain
               </span>
             </div>
           </div>
