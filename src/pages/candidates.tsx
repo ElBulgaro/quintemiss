@@ -11,13 +11,13 @@ export default function Candidates() {
 
   return (
     <div className="min-h-screen bg-cream">
-      <div className="sticky top-16 z-10 bg-cream/95 backdrop-blur-sm py-6 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+      <div className="sticky top-16 z-10 bg-cream/95 backdrop-blur-sm py-8 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <h1 className="text-3xl md:text-4xl font-bold text-center font-playfair text-gold">
             Candidates Miss France 2024
           </h1>
           
-          <div className="flex justify-center items-center gap-8">
+          <div className="flex justify-center items-center gap-16">
             <div className="flex items-center gap-6">
               <span 
                 onClick={toggleImage}
@@ -55,7 +55,7 @@ export default function Candidates() {
         </div>
       </div>
 
-      <div className="pt-8 pb-6">
+      <div className="py-8">
         <CandidatesGrid searchQuery={searchQuery} />
       </div>
     </div>
