@@ -56,14 +56,14 @@ export default function Candidates() {
               </div>
             )}
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               {isMobile ? (
                 <Button 
                   variant="outline"
                   onClick={toggleImage}
                   className="text-xs h-8 px-2 shadow-sm hover:shadow-md transition-all bg-white/50"
                 >
-                  {showOfficialPhoto ? '👙 Maillot' : '🤵‍♀️ Portrait'}
+                  {showOfficialPhoto ? '👙 Maillot de bain' : '🤵‍♀️ Portrait officiel'}
                 </Button>
               ) : (
                 <>
