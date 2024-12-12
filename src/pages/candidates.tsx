@@ -29,7 +29,7 @@ export default function Candidates() {
                 variant="ghost" 
                 size="icon"
                 onClick={toggleImage}
-                className="hover:bg-gold/10 relative w-14 h-7 rounded-full"
+                className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-rich-black/5"
               >
                 <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-300 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
               </Button>
