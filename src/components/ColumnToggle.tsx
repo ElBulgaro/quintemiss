@@ -1,4 +1,3 @@
-import { LayoutGrid, Columns } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 
 interface ColumnToggleProps {
@@ -15,8 +14,7 @@ export function ColumnToggle({ singleColumn, onToggle }: ColumnToggleProps) {
         aria-label="Double column view"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="3" width="5" height="10" stroke="currentColor" strokeWidth="1.5"/>
-          <rect x="9" y="3" width="5" height="10" stroke="currentColor" strokeWidth="1.5"/>
+          <rect x="3" y="3" width="10" height="10" stroke="currentColor" strokeWidth="1.5"/>
         </svg>
       </Toggle>
       <Toggle
@@ -25,7 +23,8 @@ export function ColumnToggle({ singleColumn, onToggle }: ColumnToggleProps) {
         aria-label="Single column view"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="3" width="10" height="10" stroke="currentColor" strokeWidth="1.5"/>
+          <rect x="2" y="3" width="5" height="10" stroke="currentColor" strokeWidth="1.5"/>
+          <rect x="9" y="3" width="5" height="10" stroke="currentColor" strokeWidth="1.5"/>
         </svg>
       </Toggle>
     </div>
