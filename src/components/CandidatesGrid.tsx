@@ -32,8 +32,8 @@ export function CandidatesGrid({ searchQuery = "", singleColumn = false }: Candi
 
   if (isLoading) {
     return (
-      <div className={`grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-2'} gap-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
-        {[...Array(6)].map((_, index) => (
+      <div className={`grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-2 xl:grid-cols-4'} gap-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
+        {[...Array(8)].map((_, index) => (
           <div key={index} className="space-y-3">
             <Skeleton className="h-[400px] w-full" />
             <Skeleton className="h-4 w-[250px]" />
@@ -46,7 +46,7 @@ export function CandidatesGrid({ searchQuery = "", singleColumn = false }: Candi
 
   return (
     <motion.div 
-      className={`grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-2'} gap-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}
+      className={`grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-2 xl:grid-cols-4'} gap-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
