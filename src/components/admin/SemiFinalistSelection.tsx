@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import type { Candidate } from "@/data/candidates";
+import type { Candidate } from "@/data/types";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SemiFinalistSelectionProps {
@@ -28,22 +28,29 @@ export function SemiFinalistSelection({
 
   const saveResults = async (updatedSemiFinalists: string[]) => {
     try {
-      // First try to fetch existing record
-      const { data: existingResults } = await supabase
+      // Create a new official result
+      const { data: officialResult, error: resultError } = await supabase
         .from('official_results')
-        .select('*')
-        .limit(1);
-
-      const { error } = await supabase
-        .from('official_results')
-        .upsert({
-          id: existingResults?.[0]?.id, // Use existing ID if available
-          semi_finalists: updatedSemiFinalists,
-          final_ranking: existingResults?.[0]?.final_ranking || [], // Preserve existing final ranking
+        .insert({
           submitted_at: new Date().toISOString(),
-        });
+        })
+        .select('id')
+        .single();
 
-      if (error) throw error;
+      if (resultError) throw resultError;
+
+      // Create semi-finalist entries
+      const semiFinalistItems = updatedSemiFinalists.map(candidateId => ({
+        official_result_id: officialResult.id,
+        candidate_id: candidateId,
+      }));
+
+      const { error: semiFinalistsError } = await supabase
+        .from('semi_finalists')
+        .insert(semiFinalistItems);
+
+      if (semiFinalistsError) throw semiFinalistsError;
+
       toast.success("Semi-finalist selection saved");
     } catch (error) {
       console.error('Error saving results:', error);
