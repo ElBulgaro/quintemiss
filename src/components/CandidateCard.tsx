@@ -14,6 +14,7 @@ interface CandidateCardProps {
   portrait_url?: string;
   instagram?: string;
   selected?: boolean;
+  onClick?: () => void;  // Added onClick prop
 }
 
 export function CandidateCard({ 
@@ -26,7 +27,8 @@ export function CandidateCard({
   official_photo_url,
   portrait_url,
   instagram,
-  selected 
+  selected,
+  onClick 
 }: CandidateCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -47,6 +49,7 @@ export function CandidateCard({
         officialPhotoUrl={official_photo_url}
         isHovered={isHovered}
         selected={selected}
+        onClick={onClick}  // Pass onClick to CandidateImage
       />
       <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
@@ -59,7 +62,7 @@ export function CandidateCard({
             portrait_url={portrait_url}
           />
         </div>
-        <p className="text-sm text-rich-black/80 leading-relaxed">{bio}</p>
+        <p className="text-sm text-rich-black/80 leading-relaxed line-clamp-4 hover:line-clamp-none transition-all">{bio}</p>
       </div>
     </motion.div>
   );
