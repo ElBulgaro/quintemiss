@@ -21,7 +21,7 @@ export default function Login() {
       const email = `${username}@temp.com`;
 
       if (isSignUp) {
-        // Check if user exists in auth.users (through profiles)
+        // Check if user exists in profiles
         const { data: existingUsers, error: queryError } = await supabase
           .from('profiles')
           .select('username')
@@ -39,13 +39,13 @@ export default function Login() {
           return;
         }
 
-        // Sign up flow
+        // Sign up flow with metadata
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
-              username,
+              username: username, // Include username in metadata
             }
           }
         });
