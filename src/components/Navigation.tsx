@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,42 +13,67 @@ export function Navigation() {
   const isAdmin = true;
 
   useEffect(() => {
-    // Check initial auth state
-    const user = localStorage.getItem('user');
-    if (user) {
-      const userData = JSON.parse(user);
-      setIsAuthenticated(true);
-      setUsername(userData.username);
-    }
-
-    // Listen for auth state changes
-    const handleAuthChange = () => {
-      const user = localStorage.getItem('user');
-      if (user) {
-        const userData = JSON.parse(user);
-        setIsAuthenticated(true);
-        setUsername(userData.username);
+    // Check initial auth state from Supabase, not localStorage
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile) {
+          setIsAuthenticated(true);
+          setUsername(profile.username);
+        } else {
+          // If no profile found, clear auth state
+          handleLogout();
+        }
       } else {
         setIsAuthenticated(false);
         setUsername(null);
       }
     };
 
-    window.addEventListener('auth-state-changed', handleAuthChange);
+    checkAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        setUsername(null);
+      } else if (session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile) {
+          setIsAuthenticated(true);
+          setUsername(profile.username);
+        }
+      }
+    });
+
     return () => {
-      window.removeEventListener('auth-state-changed', handleAuthChange);
+      subscription.unsubscribe();
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      // Clear user authentication
+      await supabase.auth.signOut();
+      // Clear local storage
       localStorage.removeItem('user');
-      // Clear predictions
       localStorage.removeItem('predictions');
-      // Dispatch auth state change event
-      window.dispatchEvent(new Event('auth-state-changed'));
+      // Update state
+      setIsAuthenticated(false);
+      setUsername(null);
+      // Show success message
       toast.success("Déconnexion réussie");
+      // Navigate to home
       navigate("/");
     } catch (error) {
       console.error("Error logging out:", error);
