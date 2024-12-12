@@ -11,15 +11,25 @@ export const usePredictions = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: predictions } = await supabase
-        .from('predictions')
-        .select('predictions')
-        .eq('user_id', session.user.id);
+      try {
+        // First get the user's most recent prediction
+        const { data: predictions, error: predictionsError } = await supabase
+          .from('predictions')
+          .select('id, predictions')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-      // If predictions exist, use the first one (most recent)
-      if (predictions && predictions.length > 0) {
-        setSelectedCandidates(predictions[0].predictions);
-        localStorage.setItem('predictions', JSON.stringify(predictions[0].predictions));
+        if (predictionsError) throw predictionsError;
+
+        // If predictions exist, use them
+        if (predictions && predictions.length > 0) {
+          setSelectedCandidates(predictions[0].predictions || []);
+          localStorage.setItem('predictions', JSON.stringify(predictions[0].predictions));
+        }
+      } catch (error) {
+        console.error('Error fetching predictions:', error);
+        toast.error("Une erreur est survenue lors de la récupération de vos prédictions");
       }
     };
 
@@ -39,7 +49,7 @@ export const usePredictions = () => {
   const savePredictions = async () => {
     if (selectedCandidates.length !== 5) {
       toast.error("Veuillez sélectionner exactement 5 candidates");
-      return;
+      return false;
     }
 
     setIsSubmitting(true);
@@ -48,18 +58,34 @@ export const usePredictions = () => {
       
       if (!user) {
         toast.error("Une erreur est survenue, veuillez vous reconnecter");
-        return;
+        return false;
       }
 
-      const { error } = await supabase
+      // Create a new prediction entry
+      const { data: prediction, error: predictionError } = await supabase
         .from('predictions')
-        .upsert({
+        .insert({
           user_id: user.id,
           predictions: selectedCandidates,
           submitted_at: new Date().toISOString(),
-        });
+        })
+        .select('id')
+        .single();
 
-      if (error) throw error;
+      if (predictionError) throw predictionError;
+
+      // Create prediction items for each candidate
+      const predictionItems = selectedCandidates.map((candidateId, index) => ({
+        prediction_id: prediction.id,
+        candidate_id: candidateId,
+        position: index + 1,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('prediction_items')
+        .insert(predictionItems);
+
+      if (itemsError) throw itemsError;
       
       toast.success("🎉 Prédictions enregistrées!", {
         description: "Rendez-vous sur le leaderboard pour voir votre classement!"

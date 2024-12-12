@@ -75,6 +75,48 @@ export type Database = {
         }
         Relationships: []
       }
+      final_rankings: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          official_result_id: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          official_result_id: string
+          position: number
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          official_result_id?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "final_rankings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_rankings_official_result_id_fkey"
+            columns: ["official_result_id"]
+            isOneToOne: false
+            referencedRelation: "official_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       official_results: {
         Row: {
           created_at: string
@@ -101,6 +143,48 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      prediction_items: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          position: number
+          prediction_id: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          position: number
+          prediction_id: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          position?: number
+          prediction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_items_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_items_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       predictions: {
         Row: {
@@ -163,28 +247,81 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          official_result_id: string | null
           perfect_match: boolean
           score: number
+          scored_at: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          official_result_id?: string | null
           perfect_match?: boolean
           score?: number
+          scored_at?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          official_result_id?: string | null
           perfect_match?: boolean
           score?: number
+          scored_at?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scores_official_result_id_fkey"
+            columns: ["official_result_id"]
+            isOneToOne: false
+            referencedRelation: "official_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      semi_finalists: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          official_result_id: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          official_result_id: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          official_result_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "semi_finalists_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semi_finalists_official_result_id_fkey"
+            columns: ["official_result_id"]
+            isOneToOne: false
+            referencedRelation: "official_results"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
