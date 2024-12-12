@@ -38,7 +38,7 @@ export default function Candidates() {
               onClick={toggleImage}
               className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-white shadow-sm"
             >
-              <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-300 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
+              <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-300 ${!showOfficialPhoto ? 'left-1' : 'left-8'}`} />
             </Button>
             <span className={`text-sm transition-colors ${showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60'}`}>
               Portrait Officiel 🤵‍♀️
