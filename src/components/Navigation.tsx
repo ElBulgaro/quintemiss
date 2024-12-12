@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function Navigation() {
@@ -13,30 +12,37 @@ export function Navigation() {
   const isAdmin = true;
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setIsAuthenticated(!!session);
-      
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', session.user.id)
-          .single();
-        
-        setUsername(profile?.username || null);
+    // Check initial auth state
+    const user = localStorage.getItem('user');
+    if (user) {
+      const userData = JSON.parse(user);
+      setIsAuthenticated(true);
+      setUsername(userData.username);
+    }
+
+    // Listen for auth state changes
+    const handleAuthChange = () => {
+      const user = localStorage.getItem('user');
+      if (user) {
+        const userData = JSON.parse(user);
+        setIsAuthenticated(true);
+        setUsername(userData.username);
       } else {
+        setIsAuthenticated(false);
         setUsername(null);
       }
-    });
+    };
 
+    window.addEventListener('auth-state-changed', handleAuthChange);
     return () => {
-      subscription.unsubscribe();
+      window.removeEventListener('auth-state-changed', handleAuthChange);
     };
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await supabase.auth.signOut();
+      localStorage.removeItem('user');
+      window.dispatchEvent(new Event('auth-state-changed'));
       toast.success("Déconnexion réussie");
       navigate("/");
     } catch (error) {
