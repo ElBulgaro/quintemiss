@@ -44,18 +44,20 @@ export function CandidatesGrid({ searchQuery = "" }: CandidatesGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      {filteredCandidates?.map((candidate, index) => (
-        <motion.div
+    <motion.div 
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {filteredCandidates?.map((candidate) => (
+        <div
           key={candidate.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: index * 0.1 }}
           className="hover-lift"
         >
           <CandidateCard {...candidate} />
-        </motion.div>
+        </div>
       ))}
-    </div>
+    </motion.div>
   );
 }
