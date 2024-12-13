@@ -11,10 +11,10 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
-  const isAdmin = true;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,19 +39,21 @@ export function Navigation() {
       if (session) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('username')
+          .select('username, is_admin')
           .eq('id', session.user.id)
           .single();
         
         if (profile) {
           setIsAuthenticated(true);
           setUsername(profile.username);
+          setIsAdmin(profile.is_admin || false);
         } else {
           handleLogout();
         }
       } else {
         setIsAuthenticated(false);
         setUsername(null);
+        setIsAdmin(false);
       }
     };
 
@@ -61,16 +63,18 @@ export function Navigation() {
       if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
         setUsername(null);
+        setIsAdmin(false);
       } else if (session) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('username')
+          .select('username, is_admin')
           .eq('id', session.user.id)
           .single();
         
         if (profile) {
           setIsAuthenticated(true);
           setUsername(profile.username);
+          setIsAdmin(profile.is_admin || false);
         }
       }
     });
@@ -87,6 +91,7 @@ export function Navigation() {
       localStorage.removeItem('predictions');
       setIsAuthenticated(false);
       setUsername(null);
+      setIsAdmin(false);
       toast.success("Déconnexion réussie");
       navigate("/");
     } catch (error) {
