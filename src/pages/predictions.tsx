@@ -15,9 +15,9 @@ import type { Candidate } from "@/data/types";
 
 export default function Predictions() {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<'grid-2' | 'grid-3' | 'list'>('grid-2');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showTutorial, setShowTutorial] = useState(true);
+  const [singleColumn, setSingleColumn] = useState(false);
   
   const { 
     selectedCandidates, 
@@ -120,9 +120,7 @@ export default function Predictions() {
               </SheetTrigger>
               <SheetContent side="bottom" className="h-[80vh] sm:h-[90vh]">
                 <CandidatesList
-                  viewMode={viewMode}
                   selectedCandidates={selectedCandidates}
-                  onViewChange={setViewMode}
                   onCandidateSelect={handleCandidateSelect}
                 />
               </SheetContent>
