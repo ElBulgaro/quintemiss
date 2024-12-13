@@ -75,48 +75,6 @@ export type Database = {
         }
         Relationships: []
       }
-      final_rankings: {
-        Row: {
-          candidate_id: string
-          created_at: string
-          id: string
-          official_result_id: string
-          position: number
-          updated_at: string
-        }
-        Insert: {
-          candidate_id: string
-          created_at?: string
-          id?: string
-          official_result_id: string
-          position: number
-          updated_at?: string
-        }
-        Update: {
-          candidate_id?: string
-          created_at?: string
-          id?: string
-          official_result_id?: string
-          position?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "final_rankings_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "final_rankings_official_result_id_fkey"
-            columns: ["official_result_id"]
-            isOneToOne: false
-            referencedRelation: "official_results"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       official_results: {
         Row: {
           created_at: string
@@ -328,45 +286,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "scores_official_result_id_fkey"
-            columns: ["official_result_id"]
-            isOneToOne: false
-            referencedRelation: "official_results"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      semi_finalists: {
-        Row: {
-          candidate_id: string
-          created_at: string
-          id: string
-          official_result_id: string
-          updated_at: string
-        }
-        Insert: {
-          candidate_id: string
-          created_at?: string
-          id?: string
-          official_result_id: string
-          updated_at?: string
-        }
-        Update: {
-          candidate_id?: string
-          created_at?: string
-          id?: string
-          official_result_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "semi_finalists_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "semi_finalists_official_result_id_fkey"
             columns: ["official_result_id"]
             isOneToOne: false
             referencedRelation: "official_results"
