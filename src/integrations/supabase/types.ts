@@ -235,7 +235,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_points_from_ranking: {
+        Args: {
+          ranking: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
