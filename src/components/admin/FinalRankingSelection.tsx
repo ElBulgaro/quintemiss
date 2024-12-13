@@ -3,7 +3,6 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SortableCandidate } from "@/components/SortableCandidate";
-import { calculateScore } from "@/utils/calculateScore";
 import type { Candidate } from "@/data/types";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -119,22 +118,8 @@ export function FinalRankingSelection({
 
       if (predictionsError) throw predictionsError;
 
-      // Calculate and save scores for each user
-      const scorePromises = predictions.map(async (prediction) => {
-        const { score, perfectMatch } = calculateScore(prediction.predictions, finalRanking);
-        
-        return supabase
-          .from('scores')
-          .upsert({
-            user_id: prediction.user_id,
-            score,
-            perfect_match: perfectMatch,
-          });
-      });
-
-      await Promise.all(scorePromises);
-
-      toast.success("Official results and scores have been saved!");
+      // The scores will be calculated automatically by the database trigger
+      toast.success("Official results have been saved!");
       onSaveResults();
     } catch (error) {
       console.error('Error saving results:', error);
