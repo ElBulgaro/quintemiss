@@ -28,14 +28,14 @@ serve(async (req) => {
     console.log(`Received ${sheetType} update:`, data);
 
     if (sheetType === 'candidates') {
-      // Update candidates
-      const { error: deleteError } = await supabase
+      // Get existing candidates to determine which ones to update vs insert
+      const { data: existingCandidates, error: fetchError } = await supabase
         .from('sheet_candidates')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
+        .select('id, name, region');
 
-      if (deleteError) throw deleteError;
+      if (fetchError) throw fetchError;
 
+      // Map the incoming data
       const candidatesForDb = data.map((candidate: any) => ({
         name: candidate["Nom Complet"],
         region: candidate["Région"],
@@ -46,13 +46,32 @@ serve(async (req) => {
         official_photo_url: candidate["Photo URL (Costume)"],
         portrait_url: candidate["URL Portrait TF1"] || null,
         ranking: candidate["Classement"]?.toLowerCase().replace(/[éè]/g, 'e').replace(/ /g, '_') || 'inconnu',
+        last_synced_at: new Date().toISOString(),
       }));
 
-      const { error: insertError } = await supabase
-        .from('sheet_candidates')
-        .insert(candidatesForDb);
+      // Update existing candidates
+      for (const candidate of candidatesForDb) {
+        const existingCandidate = existingCandidates?.find(
+          (ec) => ec.name === candidate.name && ec.region === candidate.region
+        );
 
-      if (insertError) throw insertError;
+        if (existingCandidate) {
+          // Update existing candidate
+          const { error: updateError } = await supabase
+            .from('sheet_candidates')
+            .update(candidate)
+            .eq('id', existingCandidate.id);
+
+          if (updateError) throw updateError;
+        } else {
+          // Insert new candidate
+          const { error: insertError } = await supabase
+            .from('sheet_candidates')
+            .insert([candidate]);
+
+          if (insertError) throw insertError;
+        }
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {
