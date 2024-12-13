@@ -1,8 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Trophy, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import type { Candidate } from "@/data/types";
+import { useEffect } from "react";
 
 const POSITION_LABELS = {
   1: "MISS FRANCE 2025",
@@ -13,6 +14,31 @@ const POSITION_LABELS = {
 };
 
 export function OfficialResults() {
+  const queryClient = useQueryClient();
+
+  // Set up real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'official_results'
+        },
+        () => {
+          // Invalidate and refetch when official_results changes
+          queryClient.invalidateQueries({ queryKey: ['officialResults'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const { data: officialResults } = useQuery({
     queryKey: ['officialResults'],
     queryFn: async () => {
