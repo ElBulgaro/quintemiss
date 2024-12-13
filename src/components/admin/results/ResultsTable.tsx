@@ -188,11 +188,11 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
     try {
       setIsClearing(true);
       
-      // Delete all results using minimum UUID value
+      // Delete all results
       const { error } = await supabase
         .from('official_results')
         .delete()
-        .gt('id', '00000000-0000-0000-0000-000000000000');
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // This will delete all records
 
       if (error) throw error;
 
