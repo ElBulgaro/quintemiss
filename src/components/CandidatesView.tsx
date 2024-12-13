@@ -22,15 +22,59 @@ export function CandidatesView({
   const { showOfficialPhoto } = useImageToggleStore();
   const isMobile = useIsMobile();
   const { data: candidates, isLoading } = useQuery({
-    queryKey: ['candidates'],
+    queryKey: ['sheet-candidates'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('candidates')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data;
+      console.log('Fetching sheet candidates...');
+      try {
+        // First, let's do a simple count query
+        const { count, error: countError } = await supabase
+          .from('sheet_candidates')
+          .select('*', { count: 'exact' });
+        
+        if (countError) {
+          console.error('Error checking sheet_candidates count:', countError);
+          throw countError;
+        }
+        
+        console.log('Total number of sheet candidates:', count);
+
+        // Now fetch all data with a simple query
+        const { data, error } = await supabase
+          .from('sheet_candidates')
+          .select('*')
+          .order('name');
+        
+        if (error) {
+          console.error('Error fetching sheet candidates:', error);
+          throw error;
+        }
+
+        console.log('Raw sheet candidates data:', data);
+        
+        if (!data || data.length === 0) {
+          console.log('No candidates found in sheet_candidates table');
+          return [];
+        }
+
+        // Map the data to match the expected format
+        const mappedData = data.map(candidate => ({
+          id: candidate.id,
+          name: candidate.name,
+          age: candidate.age,
+          region: candidate.region,
+          image_url: candidate.image_url || '',
+          bio: candidate.bio,
+          official_photo_url: candidate.official_photo_url,
+          portrait_url: candidate.portrait_url,
+          instagram: candidate.instagram
+        }));
+
+        console.log('Mapped sheet candidates:', mappedData);
+        return mappedData;
+      } catch (error) {
+        console.error('Error in queryFn:', error);
+        throw error;
+      }
     },
   });
 
