@@ -7,7 +7,7 @@ import type { Candidate } from "@/data/types";
 export function useRankingsOperations(
   candidates: Candidate[],
   rankings: RankingState,
-  setRankings: (rankings: RankingState) => void,
+  setRankings: (rankings: RankingState | ((prev: RankingState) => RankingState)) => void,
 ) {
   const [isSaving, setIsSaving] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -76,52 +76,34 @@ export function useRankingsOperations(
       setIsSaving(true);
       const candidateRankings = { ...rankings[candidateId] };
 
-      // Get or create event
-      const { data: existingEvent } = await supabase
+      // Get latest event
+      const { data: latestEvent } = await supabase
         .from('official_results')
         .select('id')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
-      let eventId: string;
-
-      if (!existingEvent) {
-        const { data: newEvent, error: eventError } = await supabase
-          .from('official_results')
-          .insert({
-            semi_finalists: [],
-            final_ranking: [],
-            top_5: [],
-            ordered_ranking: [],
-            submitted_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-
-        if (eventError) throw eventError;
-        eventId = newEvent.id;
-      } else {
-        eventId = existingEvent.id;
+      if (!latestEvent) {
+        throw new Error('No event found');
       }
 
+      const { error } = await supabase
+        .from('rankings')
+        .upsert({
+          event_id: latestEvent.id,
+          candidate_id: candidateId,
+          ranking_type: field === 'top15' ? 'TOP_15' : field === 'top5' ? 'TOP_5' : 'FINAL',
+          position: field === 'winner' ? 0 : field === 'first' ? 1 : field === 'second' ? 2 : field === 'third' ? 3 : field === 'fourth' ? 4 : undefined,
+        }, {
+          onConflict: 'event_id,candidate_id,ranking_type'
+        });
+
+      if (error) throw error;
+
       if (field === 'top15') {
+        candidateRankings.top15 = !candidateRankings.top15;
         if (!candidateRankings.top15) {
-          await supabase
-            .from('rankings')
-            .insert({
-              event_id: eventId,
-              candidate_id: candidateId,
-              ranking_type: 'TOP_15',
-            });
-          candidateRankings.top15 = true;
-        } else {
-          await supabase
-            .from('rankings')
-            .delete()
-            .eq('event_id', eventId)
-            .eq('candidate_id', candidateId);
-          candidateRankings.top15 = false;
           candidateRankings.top5 = false;
           candidateRankings.fourth = false;
           candidateRankings.third = false;
@@ -130,27 +112,8 @@ export function useRankingsOperations(
           candidateRankings.winner = false;
         }
       } else if (field === 'top5') {
+        candidateRankings.top5 = !candidateRankings.top5;
         if (!candidateRankings.top5) {
-          if (!candidateRankings.top15) {
-            toast.error("Candidate must be in TOP 15 first");
-            return;
-          }
-          await supabase
-            .from('rankings')
-            .insert({
-              event_id: eventId,
-              candidate_id: candidateId,
-              ranking_type: 'TOP_5',
-            });
-          candidateRankings.top5 = true;
-        } else {
-          await supabase
-            .from('rankings')
-            .delete()
-            .eq('event_id', eventId)
-            .eq('candidate_id', candidateId)
-            .in('ranking_type', ['TOP_5', 'FINAL']);
-          candidateRankings.top5 = false;
           candidateRankings.fourth = false;
           candidateRankings.third = false;
           candidateRankings.second = false;
@@ -158,26 +121,10 @@ export function useRankingsOperations(
           candidateRankings.winner = false;
         }
       } else {
-        if (!candidateRankings.top5) {
-          toast.error("Candidate must be in TOP 5 first");
-          return;
-        }
-
-        const position = getFinalPosition(field);
-        if (position !== undefined) {
-          await supabase
-            .from('rankings')
-            .upsert({
-              event_id: eventId,
-              candidate_id: candidateId,
-              ranking_type: 'FINAL',
-              position,
-            });
-          candidateRankings[field] = !candidateRankings[field];
-        }
+        candidateRankings[field] = !candidateRankings[field];
       }
 
-      setRankings(prev => ({
+      setRankings((prev: RankingState) => ({
         ...prev,
         [candidateId]: candidateRankings
       }));
@@ -231,17 +178,6 @@ export function useRankingsOperations(
       toast.error("Failed to clear rankings");
     } finally {
       setIsClearing(false);
-    }
-  };
-
-  const getFinalPosition = (field: keyof RankingState[string]): number | undefined => {
-    switch (field) {
-      case 'winner': return 0;
-      case 'first': return 1;
-      case 'second': return 2;
-      case 'third': return 3;
-      case 'fourth': return 4;
-      default: return undefined;
     }
   };
 
