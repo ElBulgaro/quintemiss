@@ -92,11 +92,13 @@ export function CandidatesView({
               </div>
             </div>
           ) : (
-            <CandidateCard
-              {...candidate}
-              selected={selectedCandidates.includes(candidate.id)}
-              onClick={() => onCandidateSelect(candidate.id)}
-            />
+            <div className="max-w-[400px] mx-auto w-full">
+              <CandidateCard
+                {...candidate}
+                selected={selectedCandidates.includes(candidate.id)}
+                onClick={() => onCandidateSelect(candidate.id)}
+              />
+            </div>
           )}
         </div>
       ))}
