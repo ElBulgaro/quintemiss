@@ -24,9 +24,9 @@ export const CandidatesList = ({
   const [singleColumn, setSingleColumn] = useState(false);
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col h-full">
       <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur-sm shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="px-4 py-4">
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16">
             {!isMobile && (
               <>
@@ -95,7 +95,7 @@ export const CandidatesList = ({
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 w-full">
         <div className="py-6">
           <CandidatesView
             selectedCandidates={selectedCandidates}
