@@ -40,7 +40,7 @@ export function CandidatesView({
 
   if (isLoading) {
     return (
-      <div className={`container grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
+      <div className={`container grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
         {[...Array(8)].map((_, index) => (
           <div key={index} className="space-y-3">
             <Skeleton className="h-[400px] w-full" />
@@ -54,7 +54,7 @@ export function CandidatesView({
 
   return (
     <motion.div 
-      className={`container grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}
+      className={`container grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
