@@ -82,14 +82,26 @@ serve(async (req) => {
 
       // Now delete all non-referenced candidates
       if (referencedCandidateIds.size > 0) {
-        const { error: deleteError } = await supabase
+        // First, get all candidate IDs
+        const { data: allCandidates } = await supabase
           .from('sheet_candidates')
-          .delete()
-          .not('id', 'in', Array.from(referencedCandidateIds));
+          .select('id');
 
-        if (deleteError) {
-          console.error('Error deleting non-referenced candidates:', deleteError);
-          throw deleteError;
+        // Filter out the referenced IDs to get the ones we want to delete
+        const idsToDelete = allCandidates
+          ?.map(c => c.id)
+          .filter(id => !referencedCandidateIds.has(id)) || [];
+
+        if (idsToDelete.length > 0) {
+          const { error: deleteError } = await supabase
+            .from('sheet_candidates')
+            .delete()
+            .in('id', idsToDelete);
+
+          if (deleteError) {
+            console.error('Error deleting non-referenced candidates:', deleteError);
+            throw deleteError;
+          }
         }
       } else {
         // If there are no referenced candidates, delete all records
