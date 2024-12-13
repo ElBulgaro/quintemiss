@@ -34,11 +34,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <div className="min-h-screen bg-cream">
-          <Toaster />
-          <Sonner />
+        <div className="min-h-screen bg-cream flex flex-col">
           <Navigation />
-          <AnimatedRoutes />
+          <main className="flex-1 mt-16">
+            <Toaster />
+            <Sonner />
+            <AnimatedRoutes />
+          </main>
         </div>
       </BrowserRouter>
     </TooltipProvider>
