@@ -34,6 +34,8 @@ export default function Login() {
 
     try {
       const email = `${username}@temp.com`;
+      const savedPredictions = localStorage.getItem('predictions');
+      const predictions = savedPredictions ? JSON.parse(savedPredictions) : [];
 
       if (isSignUp) {
         // Check if user exists in profiles
@@ -80,6 +82,22 @@ export default function Login() {
           setIsSignUp(false);
           setIsLoading(false);
           return;
+        }
+
+        // If there were predictions stored locally, save them to the database
+        if (predictions.length > 0) {
+          const { error: predictionError } = await supabase
+            .from('predictions')
+            .insert({
+              user_id: signUpData.user?.id,
+              predictions: predictions,
+              submitted_at: new Date().toISOString(),
+            });
+
+          if (predictionError) {
+            console.error('Error saving predictions:', predictionError);
+            toast.error("Erreur lors de la sauvegarde des prédictions");
+          }
         }
 
         toast.success("Compte créé avec succès!");
