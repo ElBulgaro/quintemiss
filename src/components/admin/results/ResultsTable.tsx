@@ -60,17 +60,19 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
 
   const loadExistingResults = async () => {
     try {
-      const { data: officialResults } = await supabase
+      const { data: officialResults, error } = await supabase
         .from('official_results')
         .select('*')
         .order('submitted_at', { ascending: false })
         .limit(1);
 
+      if (error) throw error;
+
       if (officialResults?.[0]) {
         const newResults: ResultState = {};
         candidates.forEach(candidate => {
-          const isInTop15 = officialResults[0].semi_finalists.includes(candidate.id);
-          const finalRankingPosition = officialResults[0].final_ranking.indexOf(candidate.id);
+          const isInTop15 = officialResults[0].semi_finalists?.includes(candidate.id) || false;
+          const finalRankingPosition = officialResults[0].final_ranking?.indexOf(candidate.id) ?? -1;
           
           newResults[candidate.id] = {
             top15: isInTop15,
