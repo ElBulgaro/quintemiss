@@ -50,80 +50,68 @@ serve(async (req) => {
       // Get unique candidate IDs from prediction items
       const referencedCandidateIds = new Set(predictionItems?.map(item => item.candidate_id) || []);
 
-      // Get existing candidates that are referenced in predictions
+      // Get all existing candidates
       const { data: existingCandidates } = await supabase
         .from('sheet_candidates')
-        .select('id, name, region')
-        .in('id', Array.from(referencedCandidateIds));
+        .select('id, name, region');
 
-      // Create a map of name+region to ID for referenced candidates
-      const referencedCandidatesMap = new Map(
+      // Create a map of name+region to ID for existing candidates
+      const existingCandidatesMap = new Map(
         existingCandidates?.map(c => [`${c.name}-${c.region}`, c.id]) || []
       );
 
-      // First, handle referenced candidates to maintain foreign key constraints
+      // Track which candidates we've processed
+      const processedCandidates = new Set<string>();
+
+      // Update or insert each candidate
       for (const candidate of candidatesForDb) {
         const key = `${candidate.name}-${candidate.region}`;
-        const existingId = referencedCandidatesMap.get(key);
+        const existingId = existingCandidatesMap.get(key);
+        processedCandidates.add(key);
         
         if (existingId) {
-          // Update existing referenced candidate
+          // Update existing candidate
           const { error: updateError } = await supabase
             .from('sheet_candidates')
             .update(candidate)
             .eq('id', existingId);
 
           if (updateError) {
-            console.error('Error updating referenced candidate:', updateError);
+            console.error('Error updating candidate:', updateError);
             throw updateError;
+          }
+        } else {
+          // Insert new candidate
+          const { error: insertError } = await supabase
+            .from('sheet_candidates')
+            .insert([candidate]);
+
+          if (insertError) {
+            console.error('Error inserting new candidate:', insertError);
+            throw insertError;
           }
         }
       }
 
-      // Now delete all non-referenced candidates
-      if (referencedCandidateIds.size > 0) {
-        // First, get all candidate IDs
-        const { data: allCandidates } = await supabase
-          .from('sheet_candidates')
-          .select('id');
+      // Delete candidates that no longer exist in the sheet
+      // but preserve referenced candidates
+      const candidatesToDelete = existingCandidates
+        ?.filter(c => {
+          const key = `${c.name}-${c.region}`;
+          return !processedCandidates.has(key) && !referencedCandidateIds.has(c.id);
+        })
+        .map(c => c.id) || [];
 
-        // Filter out the referenced IDs to get the ones we want to delete
-        const idsToDelete = allCandidates
-          ?.map(c => c.id)
-          .filter(id => !referencedCandidateIds.has(id)) || [];
-
-        if (idsToDelete.length > 0) {
-          const { error: deleteError } = await supabase
-            .from('sheet_candidates')
-            .delete()
-            .in('id', idsToDelete);
-
-          if (deleteError) {
-            console.error('Error deleting non-referenced candidates:', deleteError);
-            throw deleteError;
-          }
-        }
-      } else {
-        // If there are no referenced candidates, delete all records
+      if (candidatesToDelete.length > 0) {
         const { error: deleteError } = await supabase
           .from('sheet_candidates')
           .delete()
-          .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records except placeholder
+          .in('id', candidatesToDelete);
 
         if (deleteError) {
-          console.error('Error deleting all candidates:', deleteError);
+          console.error('Error deleting outdated candidates:', deleteError);
           throw deleteError;
         }
-      }
-
-      // Finally, insert all new candidates
-      const { error: insertError } = await supabase
-        .from('sheet_candidates')
-        .insert(candidatesForDb);
-
-      if (insertError) {
-        console.error('Error inserting new candidates:', insertError);
-        throw insertError;
       }
 
       console.log('Successfully synced all candidates');
