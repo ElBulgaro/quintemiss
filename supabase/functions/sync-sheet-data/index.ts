@@ -81,14 +81,27 @@ serve(async (req) => {
       }
 
       // Now delete all non-referenced candidates
-      const { error: deleteError } = await supabase
-        .from('sheet_candidates')
-        .delete()
-        .not('id', 'in', `(${Array.from(referencedCandidateIds).map(id => `'${id}'`).join(',')})`);
+      if (referencedCandidateIds.size > 0) {
+        const { error: deleteError } = await supabase
+          .from('sheet_candidates')
+          .delete()
+          .not('id', 'in', Array.from(referencedCandidateIds));
 
-      if (deleteError) {
-        console.error('Error deleting non-referenced candidates:', deleteError);
-        throw deleteError;
+        if (deleteError) {
+          console.error('Error deleting non-referenced candidates:', deleteError);
+          throw deleteError;
+        }
+      } else {
+        // If there are no referenced candidates, delete all records
+        const { error: deleteError } = await supabase
+          .from('sheet_candidates')
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records except placeholder
+
+        if (deleteError) {
+          console.error('Error deleting all candidates:', deleteError);
+          throw deleteError;
+        }
       }
 
       // Finally, insert all new candidates
