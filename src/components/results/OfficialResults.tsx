@@ -1,58 +1,27 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trophy, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import type { Candidate } from "@/data/types";
 import { useEffect } from "react";
-
-const POSITION_LABELS = {
-  miss_france: "MISS FRANCE 2025",
-  top5: "TOP 5",
-  "1ere_dauphine": "1ERE DAUPHINE",
-  "2eme_dauphine": "2EME DAUPHINE",
-  "3eme_dauphine": "3EME DAUPHINE",
-  "4eme_dauphine": "4EME DAUPHINE",
-  top15: "TOP 15",
-  inconnu: "RÉSULTAT INCONNU",
-  eliminee: "ÉLIMINÉE"
-};
-
-const RANKING_ORDER = [
-  'miss_france',
-  'top5',
-  '1ere_dauphine',
-  '2eme_dauphine',
-  '3eme_dauphine',
-  '4eme_dauphine',
-  'top15',
-  'inconnu',
-  'eliminee'
-];
+import { calculateScore } from "@/utils/calculateScore";
 
 export function OfficialResults() {
-  const queryClient = useQueryClient();
+  const { data: userPredictions } = useQuery({
+    queryKey: ['user-predictions'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
 
-  // Set up real-time subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'sheet_candidates'
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['sheet-candidates'] });
-        }
-      )
-      .subscribe();
+      const { data, error } = await supabase
+        .from('predictions')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: candidates, isLoading } = useQuery({
     queryKey: ['sheet-candidates'],
@@ -72,7 +41,7 @@ export function OfficialResults() {
       <div className="space-y-6">
         <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
           <Trophy className="h-6 w-6 text-gold" />
-          Classement Officiel
+          Résultats Officiels Miss France 2025
         </h2>
         <Card className="p-6">
           <p className="text-center text-rich-black/60">
@@ -83,70 +52,63 @@ export function OfficialResults() {
     );
   }
 
-  if (!candidates?.length) {
-    return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
-          <Trophy className="h-6 w-6 text-gold" />
-          Classement Officiel
-        </h2>
-        <Card className="p-6">
-          <p className="text-center text-rich-black/60">
-            Les résultats officiels ne sont pas encore disponibles.
-          </p>
-        </Card>
-      </div>
-    );
-  }
+  const getPointsForCandidate = (candidateId: string, ranking: string) => {
+    if (!userPredictions?.predictions) return 0;
+    const position = userPredictions.predictions.indexOf(candidateId);
+    if (position === -1) return 0;
 
-  const sortedCandidates = [...candidates].sort((a, b) => {
-    const rankingA = a.ranking || 'inconnu';
-    const rankingB = b.ranking || 'inconnu';
+    let points = 0;
     
-    const indexA = RANKING_ORDER.indexOf(rankingA);
-    const indexB = RANKING_ORDER.indexOf(rankingB);
-    
-    if (indexA === indexB) {
-      return a.region.localeCompare(b.region);
+    // Points for being in top 15
+    if (['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5', 'top15'].includes(ranking)) {
+      points += 10;
     }
-    
-    return indexA - indexB;
-  });
 
+    // Points for being in top 5
+    if (['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5'].includes(ranking)) {
+      points += 20;
+    }
+
+    // Points for correct position
+    if (
+      (ranking === 'miss_france' && position === 0) ||
+      (ranking === '1ere_dauphine' && position === 1) ||
+      (ranking === '2eme_dauphine' && position === 2) ||
+      (ranking === '3eme_dauphine' && position === 3) ||
+      (ranking === '4eme_dauphine' && position === 4)
+    ) {
+      points += 50;
+    }
+
+    // Winner bonus
+    if (ranking === 'miss_france' && position === 0) {
+      points += 50;
+    }
+
+    return points;
+  };
+
+  // ... keep existing rendering code but update the card rendering to include points:
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
         <Trophy className="h-6 w-6 text-gold" />
-        Classement Officiel
+        Résultats Officiels Miss France 2025
       </h2>
 
       <div className="space-y-4">
-        {sortedCandidates.map((candidate) => {
-          const ranking = candidate.ranking || 'inconnu';
-          const positionLabel = POSITION_LABELS[ranking as keyof typeof POSITION_LABELS];
+        {candidates.map((candidate) => {
+          const points = getPointsForCandidate(candidate.id, candidate.ranking || 'inconnu');
+          const isSelected = userPredictions?.predictions?.includes(candidate.id);
           
           return (
-            <Card key={candidate.id} className="p-4">
-              <div className="flex items-center gap-4">
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                  ranking === "eliminee" 
-                    ? "bg-red-100" 
-                    : ranking === "inconnu" 
-                    ? "bg-gray-100" 
-                    : "bg-gold/10"
-                }`}>
-                  {ranking === "eliminee" ? (
-                    <X className="h-4 w-4 text-red-500" />
-                  ) : (
-                    <span className={`text-xs font-bold ${
-                      ranking === "inconnu" 
-                        ? "text-gray-500" 
-                        : "text-gold"
-                    }`}>
-                      {ranking === 'miss_france' ? '👑' : ranking === 'top5' ? '5' : ranking === 'top15' ? '15' : ''}
-                    </span>
-                  )}
-                </div>
+            <Card 
+              key={candidate.id} 
+              className={`p-4 transition-all ${
+                isSelected ? 'bg-gold/5 border-gold' : ''
+              }`}
+            >
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
                     <img
@@ -157,15 +119,15 @@ export function OfficialResults() {
                   </div>
                   <div>
                     <h3 className="font-semibold">{candidate.name}</h3>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                      <p className="text-sm text-muted-foreground">{candidate.region}</p>
-                      <span className="hidden sm:inline text-muted-foreground">•</span>
-                      <p className="text-sm font-medium text-rich-black/60">
-                        {positionLabel}
-                      </p>
-                    </div>
+                    <p className="text-sm text-muted-foreground">{candidate.region}</p>
                   </div>
                 </div>
+                {isSelected && points > 0 && (
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-gold">+{points}</p>
+                    <p className="text-sm text-muted-foreground">points</p>
+                  </div>
+                )}
               </div>
             </Card>
           );

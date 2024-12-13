@@ -23,6 +23,7 @@ const AnimatedRoutes = () => {
         <Route path="/predictions" element={<Predictions />} />
         <Route path="/candidates" element={<Candidates />} />
         <Route path="/results" element={<Results />} />
+        <Route path="/leaderboard" element={<Navigate to="/results" replace />} />
       </Routes>
     </AnimatePresence>
   );
