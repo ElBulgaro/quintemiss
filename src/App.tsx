@@ -8,7 +8,6 @@ import { Navigation } from "@/components/Navigation";
 import Login from "./pages/login";
 import Predictions from "./pages/predictions";
 import Candidates from "./pages/candidates";
-import AdminCandidates from "./pages/admin/candidates";
 import Results from "./pages/results";
 
 const queryClient = new QueryClient();
@@ -23,7 +22,6 @@ const AnimatedRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/predictions" element={<Predictions />} />
         <Route path="/candidates" element={<Candidates />} />
-        <Route path="/admin/candidates" element={<AdminCandidates />} />
         <Route path="/results" element={<Results />} />
       </Routes>
     </AnimatePresence>

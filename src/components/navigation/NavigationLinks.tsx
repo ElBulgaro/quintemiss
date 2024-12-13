@@ -16,11 +16,6 @@ export function NavigationLinks({ isAdmin }: NavigationLinksProps) {
       <Link to="/results" className="text-rich-black/80 hover:text-rich-black transition-colors">
         Résultats
       </Link>
-      {isAdmin && (
-        <Link to="/admin/candidates" className="text-rich-black/80 hover:text-rich-black transition-colors">
-          Admin
-        </Link>
-      )}
     </>
   );
 }
