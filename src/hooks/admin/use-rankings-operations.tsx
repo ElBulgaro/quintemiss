@@ -69,12 +69,9 @@ export function useRankingsOperations(
   const handleRankingChange = async (candidateId: string, field: keyof RankingState[string]) => {
     try {
       setIsSaving(true);
-      const candidateRankings = { ...rankings[candidateId] };
-
-      // Get latest event
       const { data: latestEvent } = await supabase
         .from('official_results')
-        .select('id')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -83,47 +80,36 @@ export function useRankingsOperations(
         throw new Error('No event found');
       }
 
+      let updatedEvent = { ...latestEvent };
+
+      if (field === 'top15') {
+        const newSemiFinalists = rankings[candidateId].top15
+          ? latestEvent.semi_finalists.filter(id => id !== candidateId)
+          : [...latestEvent.semi_finalists, candidateId];
+        updatedEvent.semi_finalists = newSemiFinalists;
+      } else if (field === 'top5') {
+        const newTop5 = rankings[candidateId].top5
+          ? latestEvent.top_5.filter(id => id !== candidateId)
+          : [...(latestEvent.top_5 || []), candidateId];
+        updatedEvent.top_5 = newTop5;
+      } else {
+        // Handle final positions
+        const position = ['winner', 'first', 'second', 'third', 'fourth'].indexOf(field);
+        if (position !== -1) {
+          const newFinalRanking = [...latestEvent.final_ranking];
+          newFinalRanking[position] = candidateId;
+          updatedEvent.final_ranking = newFinalRanking;
+        }
+      }
+
       const { error } = await supabase
-        .from('rankings')
-        .upsert({
-          event_id: latestEvent.id,
-          candidate_id: candidateId,
-          ranking_type: field === 'top15' ? 'TOP_15' : field === 'top5' ? 'TOP_5' : 'FINAL',
-          position: field === 'winner' ? 0 : field === 'first' ? 1 : field === 'second' ? 2 : field === 'third' ? 3 : field === 'fourth' ? 4 : undefined,
-        }, {
-          onConflict: 'event_id,candidate_id,ranking_type'
-        });
+        .from('official_results')
+        .update(updatedEvent)
+        .eq('id', latestEvent.id);
 
       if (error) throw error;
 
-      if (field === 'top15') {
-        candidateRankings.top15 = !candidateRankings.top15;
-        if (!candidateRankings.top15) {
-          candidateRankings.top5 = false;
-          candidateRankings.fourth = false;
-          candidateRankings.third = false;
-          candidateRankings.second = false;
-          candidateRankings.first = false;
-          candidateRankings.winner = false;
-        }
-      } else if (field === 'top5') {
-        candidateRankings.top5 = !candidateRankings.top5;
-        if (!candidateRankings.top5) {
-          candidateRankings.fourth = false;
-          candidateRankings.third = false;
-          candidateRankings.second = false;
-          candidateRankings.first = false;
-          candidateRankings.winner = false;
-        }
-      } else {
-        candidateRankings[field] = !candidateRankings[field];
-      }
-
-      setRankings((prev: RankingState) => ({
-        ...prev,
-        [candidateId]: candidateRankings
-      }));
-
+      await loadExistingRankings();
       toast.success("Ranking updated successfully");
     } catch (error) {
       console.error('Error updating ranking:', error);
@@ -147,9 +133,14 @@ export function useRankingsOperations(
       if (!latestEvent) return;
 
       const { error } = await supabase
-        .from('rankings')
-        .delete()
-        .eq('event_id', latestEvent.id);
+        .from('official_results')
+        .update({
+          semi_finalists: [],
+          top_5: [],
+          final_ranking: [],
+          submitted_at: new Date().toISOString(),
+        })
+        .eq('id', latestEvent.id);
 
       if (error) throw error;
 

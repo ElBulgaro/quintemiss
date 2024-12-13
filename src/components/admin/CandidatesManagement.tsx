@@ -38,7 +38,7 @@ export function CandidatesManagement({
     try {
       setIsDeleting(true);
       const { error } = await supabase
-        .from('candidates')
+        .from('sheet_candidates')
         .delete()
         .gt('id', '00000000-0000-0000-0000-000000000000');
 
