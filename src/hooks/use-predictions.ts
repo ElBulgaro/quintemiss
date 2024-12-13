@@ -59,7 +59,9 @@ export const usePredictions = () => {
 
   const calculateAndUpdateScore = async (userId: string, predictions: string[]) => {
     try {
-      // Get the latest rankings
+      console.log('Calculating score for predictions:', predictions);
+      
+      // Get current rankings
       const { data: candidates, error: rankingsError } = await supabase
         .from('sheet_candidates')
         .select('id, ranking')
@@ -67,13 +69,7 @@ export const usePredictions = () => {
 
       if (rankingsError) throw rankingsError;
 
-      // Get semi-finalists
-      const semiFinalists = candidates
-        .filter(c => ['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5', 'top15']
-        .includes(c.ranking))
-        .map(c => c.id);
-
-      // Get final ranking
+      // Get final ranking order
       const finalRanking = ['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine']
         .map(rank => {
           const candidate = candidates.find(c => c.ranking === rank);
@@ -81,10 +77,20 @@ export const usePredictions = () => {
         })
         .filter((id): id is string => id !== null);
 
+      // Get semi-finalists
+      const semiFinalists = candidates
+        .filter(c => ['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5', 'top15']
+        .includes(c.ranking))
+        .map(c => c.id);
+
+      console.log('Final ranking:', finalRanking);
+      console.log('Semi-finalists:', semiFinalists);
+
       // Calculate score
       const { score, perfectMatch } = calculateScore(predictions, finalRanking, semiFinalists);
+      console.log('Calculated score:', score, 'Perfect match:', perfectMatch);
 
-      // Update score in database
+      // Save score
       const { error: scoreError } = await supabase
         .from('scores')
         .upsert({
@@ -95,10 +101,10 @@ export const usePredictions = () => {
         });
 
       if (scoreError) throw scoreError;
+      console.log('Score saved successfully');
 
-      console.log('Score updated successfully:', { score, perfectMatch });
     } catch (error) {
-      console.error('Error calculating/updating score:', error);
+      console.error('Error calculating/saving score:', error);
       throw error;
     }
   };
@@ -115,19 +121,6 @@ export const usePredictions = () => {
       
       if (!user) {
         toast.error("Une erreur est survenue, veuillez vous reconnecter");
-        return false;
-      }
-
-      // Verify candidates exist
-      const { data: validCandidates, error: validationError } = await supabase
-        .from('sheet_candidates')
-        .select('id')
-        .in('id', selectedCandidates);
-
-      if (validationError) throw validationError;
-
-      if (validCandidates.length !== selectedCandidates.length) {
-        toast.error("Certaines candidates sélectionnées n'existent plus");
         return false;
       }
 
