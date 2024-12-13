@@ -17,11 +17,22 @@ export function CandidatesGrid({ searchQuery = "", singleColumn = false }: Candi
     queryFn: async () => {
       console.log('Fetching sheet candidates...');
       try {
+        // First, let's check if we can get ANY data from the table
+        const { data: count, error: countError } = await supabase
+          .from('sheet_candidates')
+          .select('*', { count: 'exact', head: true });
+        
+        if (countError) {
+          console.error('Error checking sheet_candidates count:', countError);
+          throw countError;
+        }
+        
+        console.log('Number of candidates in sheet_candidates:', count);
+
+        // Now fetch the actual data
         const { data, error } = await supabase
           .from('sheet_candidates')
-          .select('*')
-          .order('region')
-          .order('name');
+          .select('*');
         
         if (error) {
           console.error('Error fetching sheet candidates:', error);
