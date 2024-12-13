@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { SortableCandidate } from "@/components/SortableCandidate";
 import type { Candidate } from "@/data/types";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SelectedCandidatesProps {
   selectedCandidates: string[];
@@ -12,7 +14,6 @@ interface SelectedCandidatesProps {
   onSubmit: () => void;
   onClearData: () => void;
   isSubmitting: boolean;
-  candidates: Candidate[];
 }
 
 export const SelectedCandidates = ({
@@ -22,7 +23,6 @@ export const SelectedCandidates = ({
   onSubmit,
   onClearData,
   isSubmitting,
-  candidates,
 }: SelectedCandidatesProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -30,6 +30,24 @@ export const SelectedCandidates = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Fetch candidates from sheet_candidates table
+  const { data: candidates = [] } = useQuery({
+    queryKey: ['sheet-candidates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sheet_candidates')
+        .select('*')
+        .order('region');
+      
+      if (error) {
+        console.error('Error fetching sheet candidates:', error);
+        throw error;
+      }
+      
+      return data as Candidate[];
+    },
+  });
 
   const getValidationMessage = () => {
     if (selectedCandidates.length < 5) {
