@@ -2,8 +2,10 @@ import { ViewToggle } from "@/components/ViewToggle";
 import { CandidatesView } from "@/components/CandidatesView";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Shirt } from "lucide-react";
+import { Search, Shirt } from "lucide-react";
 import { useImageToggleStore } from "@/store/useImageToggleStore";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 interface CandidatesListProps {
   viewMode: 'grid-2' | 'grid-3' | 'list';
@@ -20,6 +22,7 @@ export const CandidatesList = ({
 }: CandidatesListProps) => {
   const isMobile = useIsMobile();
   const { showOfficialPhoto, toggleImage } = useImageToggleStore();
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <div className="glass-card p-6 rounded-lg h-full flex flex-col">
@@ -38,11 +41,38 @@ export const CandidatesList = ({
           <ViewToggle viewMode={viewMode} onViewChange={onViewChange} />
         </div>
       </div>
+
+      <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16 mb-6">
+        <div className="w-full max-w-xs relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-rich-black/40 pointer-events-none" />
+          <Input
+            type="text"
+            placeholder="Rechercher une candidate..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-gold/30 focus:border-gold/50"
+          />
+        </div>
+        
+        {isMobile && (
+          <div className="flex items-center gap-6">
+            <Button 
+              variant="outline"
+              onClick={toggleImage}
+              className="text-xs h-8 px-2 shadow-sm hover:shadow-md transition-all bg-white/50"
+            >
+              {showOfficialPhoto ? 'Portrait Officiel 🤵‍♀️' : 'Maillot de bain 👙'}
+            </Button>
+          </div>
+        )}
+      </div>
+
       <div className={`${isMobile ? 'h-full' : 'max-h-[600px]'} flex-1 overflow-y-auto`}>
         <CandidatesView
           viewMode={viewMode}
           selectedCandidates={selectedCandidates}
           onCandidateSelect={onCandidateSelect}
+          searchQuery={searchQuery}
         />
       </div>
     </div>

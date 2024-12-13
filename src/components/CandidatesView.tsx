@@ -8,12 +8,14 @@ interface CandidatesViewProps {
   viewMode: 'grid-2' | 'grid-3' | 'list';
   selectedCandidates: string[];
   onCandidateSelect: (id: string) => void;
+  searchQuery?: string;
 }
 
 export function CandidatesView({
   viewMode,
   selectedCandidates,
   onCandidateSelect,
+  searchQuery = "",
 }: CandidatesViewProps) {
   const { showOfficialPhoto } = useImageToggleStore();
   const { data: candidates, isLoading } = useQuery({
@@ -29,6 +31,12 @@ export function CandidatesView({
     },
   });
 
+  const filteredCandidates = candidates?.filter(candidate => 
+    candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    candidate.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (candidate.bio?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+  );
+
   const getGridClasses = () => {
     if (viewMode === 'list') {
       return 'flex flex-col gap-2';
@@ -40,7 +48,7 @@ export function CandidatesView({
       return `${baseClasses} grid-cols-2`;
     }
     
-    return `${baseClasses} grid-cols-2 lg:grid-cols-3`;
+    return `${baseClasses} grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`;
   };
 
   if (isLoading) {
@@ -58,7 +66,7 @@ export function CandidatesView({
 
   return (
     <div className={getGridClasses()}>
-      {candidates?.map((candidate) => (
+      {filteredCandidates?.map((candidate) => (
         <div key={candidate.id}>
           {viewMode === 'list' ? (
             <div
@@ -73,7 +81,7 @@ export function CandidatesView({
                 onClick={() => onCandidateSelect(candidate.id)}
               >
                 <img
-                  src={candidate.image_url}
+                  src={showOfficialPhoto ? candidate.official_photo_url || candidate.image_url : candidate.image_url}
                   alt={candidate.name}
                   className="absolute w-[120%] h-[120%] object-cover object-top left-1/2 -translate-x-1/2"
                 />
