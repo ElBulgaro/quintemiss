@@ -44,13 +44,13 @@ export const SelectedCandidates = ({
   return (
     <div className="rounded-lg">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-rich-black">Votre Top 5</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-rich-black">Votre Top 5</h2>
         <Button
           onClick={onClearData}
           variant="outline"
           className="text-sm"
         >
-          Effacer les données
+          Tout effacer
         </Button>
       </div>
       <DndContext
