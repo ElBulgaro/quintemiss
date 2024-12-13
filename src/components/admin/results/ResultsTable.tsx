@@ -42,13 +42,50 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleCheckboxChange = (candidateId: string, field: keyof ResultState[string]) => {
-    setResults(prev => ({
-      ...prev,
-      [candidateId]: {
-        ...prev[candidateId],
-        [field]: !prev[candidateId][field],
-      },
-    }));
+    setResults(prev => {
+      const newResults = { ...prev };
+      const candidateResults = { ...newResults[candidateId] };
+
+      // Handle dependencies and restrictions
+      if (field === 'top15' && !candidateResults.top15) {
+        // If enabling top15, no changes needed
+        candidateResults.top15 = true;
+      } else if (field === 'top15' && candidateResults.top15) {
+        // If disabling top15, disable all dependent fields
+        candidateResults.top15 = false;
+        candidateResults.top5 = false;
+        candidateResults.fourth = false;
+        candidateResults.third = false;
+        candidateResults.second = false;
+        candidateResults.first = false;
+        candidateResults.winner = false;
+      } else if (field === 'top5' && !candidateResults.top5) {
+        // Can only enable top5 if top15 is selected
+        if (!candidateResults.top15) {
+          toast.error("Candidate must be in TOP 15 first");
+          return prev;
+        }
+        candidateResults.top5 = true;
+      } else if (field === 'top5' && candidateResults.top5) {
+        // If disabling top5, disable all dependent fields
+        candidateResults.top5 = false;
+        candidateResults.fourth = false;
+        candidateResults.third = false;
+        candidateResults.second = false;
+        candidateResults.first = false;
+        candidateResults.winner = false;
+      } else {
+        // For final ranking positions (fourth through winner)
+        if (!candidateResults.top5) {
+          toast.error("Candidate must be in TOP 5 first");
+          return prev;
+        }
+        candidateResults[field] = !candidateResults[field];
+      }
+
+      newResults[candidateId] = candidateResults;
+      return newResults;
+    });
   };
 
   const handleSaveResults = async () => {
@@ -102,6 +139,15 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end mb-4">
+        <Button 
+          onClick={handleSaveResults} 
+          disabled={isSaving}
+        >
+          {isSaving ? "Saving..." : "Save Official Results"}
+        </Button>
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -179,13 +225,6 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
           </TableBody>
         </Table>
       </div>
-      <Button 
-        onClick={handleSaveResults} 
-        disabled={isSaving}
-        className="w-full"
-      >
-        {isSaving ? "Saving..." : "Save Official Results"}
-      </Button>
     </div>
   );
 }
