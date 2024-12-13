@@ -30,7 +30,7 @@ export function useRankingsOperations(
 
       if (error) throw error;
 
-      const newRankings: RankingState = { ...rankings };
+      const newRankings = { ...rankings };
       
       existingRankings.forEach(ranking => {
         if (!newRankings[ranking.candidate_id]) return;

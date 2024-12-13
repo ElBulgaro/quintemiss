@@ -1,20 +1,18 @@
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import type { Candidate } from "@/data/types";
-import { CandidateRow } from "./CandidateRow";
-import { ClearResultsDialog } from "./ClearResultsDialog";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useAdminRankings } from "@/hooks/admin/use-admin-rankings";
+import type { Candidate } from "@/data/types";
 
 interface ResultsTableProps {
   candidates: Candidate[];
 }
 
 export function ResultsTable({ candidates }: ResultsTableProps) {
+  const [isSaving, setIsSaving] = useState(false);
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
   const {
     rankings,
-    isSaving,
     isClearing,
     handleRankingChange,
     clearAllRankings,
@@ -73,7 +71,7 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
         .upsert({
           id: newEvent.id,
           semi_finalists: semiFinalists,
-          final_ranking: orderedRanking.filter(Boolean), // Remove empty slots
+          final_ranking: orderedRanking.filter(Boolean),
           top_5: top5,
           ordered_ranking: orderedRanking,
           submitted_at: new Date().toISOString(),
