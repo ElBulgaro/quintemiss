@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Candidate } from "@/data/types";
 import { Button } from "@/components/ui/button";
-import { Sync } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -159,7 +159,7 @@ export default function AdminCandidates() {
                 disabled={isSyncing}
                 variant="outline"
               >
-                <Sync className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
                 {isSyncing ? "Syncing..." : "Sync with Sheet"}
               </Button>
             </div>
