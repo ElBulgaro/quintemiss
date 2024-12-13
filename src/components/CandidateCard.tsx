@@ -40,7 +40,7 @@ export function CandidateCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`glass-card rounded-lg overflow-hidden flex flex-col ${
+      className={`glass-card rounded-lg overflow-hidden flex flex-col max-w-[400px] mx-auto w-full ${
         selected ? "ring-2 ring-gold" : ""
       }`}
       onMouseEnter={() => setIsHovered(true)}
