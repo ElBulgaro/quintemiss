@@ -32,11 +32,16 @@ function getSheetData(sheet) {
         
         // Format ranking value
         if (header === 'Classement') {
-          obj[header] = row[i] ? row[i].toLowerCase()
+          obj[header] = row[i] ? row[i].toString().toLowerCase()
             .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
             .replace(/[^a-z0-9]+/g, '_') // Replace spaces and special chars with underscore
             .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
             : 'inconnu';
+        }
+
+        // Ensure ID is null if not provided
+        if (header === 'ID') {
+          obj[header] = row[i] || null;
         }
       });
       return obj;

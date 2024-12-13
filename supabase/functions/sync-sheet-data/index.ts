@@ -10,7 +10,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -19,7 +18,6 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { sheetType, data, secret } = await req.json();
 
-    // Verify webhook secret
     const webhookSecret = Deno.env.get('SHEETS_WEBHOOK_SECRET');
     if (secret !== webhookSecret) {
       throw new Error('Invalid webhook secret');
@@ -28,7 +26,6 @@ serve(async (req) => {
     console.log(`Received ${sheetType} update with ${data.length} records`);
 
     if (sheetType === 'candidates') {
-      // Map the incoming data
       const candidatesForDb = data.map((candidate: any) => ({
         name: candidate["Nom Complet"],
         region: candidate["Région"],
@@ -39,18 +36,16 @@ serve(async (req) => {
         official_photo_url: candidate["Photo URL (Costume)"],
         portrait_url: candidate["URL Portrait TF1"] || null,
         ranking: candidate["Classement"]?.toLowerCase()
-          .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
-          .replace(/[^a-z0-9]+/g, '_') // Replace spaces and special chars with underscore
-          .replace(/^_+|_+$/g, '') || 'inconnu', // Remove leading/trailing underscores
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '') || 'inconnu',
         last_synced_at: new Date().toISOString(),
       }));
 
       console.log('Mapped candidates data:', candidatesForDb);
 
-      // Process each candidate
       for (const candidate of candidatesForDb) {
         try {
-          // First try to find an existing candidate by name and region
           const { data: existingCandidate, error: findError } = await supabase
             .from('sheet_candidates')
             .select('id')
@@ -63,8 +58,7 @@ serve(async (req) => {
             throw findError;
           }
 
-          if (existingCandidate?.id) {
-            // Update existing candidate
+          if (existingCandidate) {
             const { error: updateError } = await supabase
               .from('sheet_candidates')
               .update(candidate)
@@ -76,7 +70,6 @@ serve(async (req) => {
             }
             console.log(`Updated candidate: ${candidate.name} from ${candidate.region}`);
           } else {
-            // Insert new candidate
             const { error: insertError } = await supabase
               .from('sheet_candidates')
               .insert([candidate]);
@@ -93,9 +86,7 @@ serve(async (req) => {
         }
       }
 
-      // Clean up old candidates
       try {
-        // Get all current candidates from the database
         const { data: currentCandidates, error: getCurrentError } = await supabase
           .from('sheet_candidates')
           .select('id, name, region');
@@ -105,7 +96,6 @@ serve(async (req) => {
           throw getCurrentError;
         }
 
-        // Get all prediction items that reference sheet_candidates
         const { data: predictionItems, error: predictionError } = await supabase
           .from('prediction_items')
           .select('candidate_id');
@@ -115,15 +105,9 @@ serve(async (req) => {
           throw predictionError;
         }
 
-        // Create a Set of candidate IDs that are referenced in predictions
         const referencedCandidateIds = new Set(predictionItems?.map(item => item.candidate_id) || []);
+        const newCandidateKeys = new Set(candidatesForDb.map(c => `${c.name}-${c.region}`));
 
-        // Create a Set of candidate identifiers from the new data
-        const newCandidateKeys = new Set(
-          candidatesForDb.map(c => `${c.name}-${c.region}`)
-        );
-
-        // Find candidates to delete (not in new data and not referenced in predictions)
         const candidatesToDelete = currentCandidates
           ?.filter(c => {
             const key = `${c.name}-${c.region}`;
