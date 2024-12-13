@@ -43,19 +43,29 @@ export default function Predictions() {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
+      if (!session) {
+        setIsAuthenticated(false);
+        navigate('/login');
+        return;
+      }
+      setIsAuthenticated(true);
     };
     
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
+      if (event === 'SIGNED_OUT' || !session) {
+        setIsAuthenticated(false);
+        navigate('/login');
+      } else {
+        setIsAuthenticated(true);
+      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -77,21 +87,21 @@ export default function Predictions() {
   };
 
   const handleSubmit = async () => {
+    if (!isAuthenticated) {
+      toast.error("Veuillez vous connecter pour soumettre vos prédictions");
+      navigate('/login');
+      return;
+    }
+
     const success = await savePredictions();
     if (success) {
       setTimeout(() => navigate("/leaderboard"), 2000);
     }
   };
 
-  const getSelectionMessage = () => {
-    if (selectedCandidates.length < 5) {
-      return "Complétez votre Top 5 pour valider vos prédictions";
-    }
-    if (selectedCandidates.length > 5) {
-      return "Réduisez votre sélection à 5 candidates pour valider vos prédictions";
-    }
+  if (!isAuthenticated) {
     return null;
-  };
+  }
 
   return (
     <div className="min-h-screen bg-cream pt-24 pb-16">
