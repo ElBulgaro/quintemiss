@@ -6,6 +6,7 @@ import { Search, Shirt } from "lucide-react";
 import { useImageToggleStore } from "@/store/useImageToggleStore";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { ColumnToggle } from "@/components/ColumnToggle";
 
 interface CandidatesListProps {
   viewMode: 'grid-2' | 'grid-3' | 'list';
@@ -23,22 +24,51 @@ export const CandidatesList = ({
   const isMobile = useIsMobile();
   const { showOfficialPhoto, toggleImage } = useImageToggleStore();
   const [searchQuery, setSearchQuery] = useState("");
+  const [singleColumn, setSingleColumn] = useState(false);
 
   return (
     <div className="glass-card p-6 rounded-lg h-full flex flex-col">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-rich-black">Candidates</h2>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={toggleImage}
-            className="hover:bg-gold/10"
-            title={showOfficialPhoto ? "Voir en maillot" : "Voir en costume"}
-          >
-            <Shirt className={`h-5 w-5 ${showOfficialPhoto ? 'text-gold' : 'text-rich-black/60'}`} />
-          </Button>
-          <ViewToggle viewMode={viewMode} onViewChange={onViewChange} />
+          {!isMobile && (
+            <>
+              <span 
+                onClick={toggleImage}
+                className={`text-sm transition-colors cursor-pointer select-none ${showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60 hover:text-rich-black/80'}`}
+              >
+                Portrait Officiel 🤵‍♀️
+              </span>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={toggleImage}
+                className="hover:bg-gold/10 relative w-14 h-7 rounded-full bg-rich-black/5 transition-all duration-500"
+              >
+                <div className={`absolute w-5 h-5 rounded-full bg-gold transition-all duration-500 ${showOfficialPhoto ? 'left-1' : 'left-8'}`} />
+              </Button>
+              <span 
+                onClick={toggleImage}
+                className={`text-sm transition-colors cursor-pointer select-none ${!showOfficialPhoto ? 'text-gold font-medium' : 'text-rich-black/60 hover:text-rich-black/80'}`}
+              >
+                👙 Maillot de bain
+              </span>
+            </>
+          )}
+          {isMobile && (
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={toggleImage}
+                className="hover:bg-gold/10"
+                title={showOfficialPhoto ? "Voir en maillot" : "Voir en costume"}
+              >
+                <Shirt className={`h-5 w-5 ${showOfficialPhoto ? 'text-gold' : 'text-rich-black/60'}`} />
+              </Button>
+              <ColumnToggle singleColumn={singleColumn} onToggle={setSingleColumn} />
+            </>
+          )}
         </div>
       </div>
 
