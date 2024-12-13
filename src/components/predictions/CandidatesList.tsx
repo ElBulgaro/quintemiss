@@ -6,6 +6,7 @@ import { useImageToggleStore } from "@/store/useImageToggleStore";
 import { Input } from "@/components/ui/input";
 import { ColumnToggle } from "@/components/ColumnToggle";
 import { useState } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CandidatesListProps {
   selectedCandidates: string[];
@@ -22,7 +23,7 @@ export const CandidatesList = ({
   const [singleColumn, setSingleColumn] = useState(false);
 
   return (
-    <div className="min-h-screen bg-cream/95 backdrop-blur-sm">
+    <div className="flex flex-col h-full">
       <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur-sm shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16">
@@ -93,14 +94,16 @@ export const CandidatesList = ({
         </div>
       </div>
 
-      <div className="py-6">
-        <CandidatesView
-          selectedCandidates={selectedCandidates}
-          onCandidateSelect={onCandidateSelect}
-          searchQuery={searchQuery}
-          singleColumn={singleColumn}
-        />
-      </div>
+      <ScrollArea className="flex-1">
+        <div className="py-6">
+          <CandidatesView
+            selectedCandidates={selectedCandidates}
+            onCandidateSelect={onCandidateSelect}
+            searchQuery={searchQuery}
+            singleColumn={singleColumn}
+          />
+        </div>
+      </ScrollArea>
     </div>
   );
 };
