@@ -23,12 +23,11 @@ export function OfficialResults() {
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'official_results'
         },
         () => {
-          // Invalidate and refetch when official_results changes
           queryClient.invalidateQueries({ queryKey: ['officialResults'] });
         }
       )
@@ -68,6 +67,23 @@ export function OfficialResults() {
 
   if (!candidates) {
     return <div>Loading...</div>;
+  }
+
+  // If there are no official results, show a message
+  if (!officialResults) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
+          <Trophy className="h-6 w-6 text-gold" />
+          Classement Officiel
+        </h2>
+        <Card className="p-6">
+          <p className="text-center text-rich-black/60">
+            Les résultats officiels ne sont pas encore disponibles.
+          </p>
+        </Card>
+      </div>
+    );
   }
 
   const getPositionLabel = (candidateId: string): string => {
