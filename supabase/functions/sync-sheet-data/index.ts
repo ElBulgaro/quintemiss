@@ -118,18 +118,27 @@ serve(async (req) => {
           let perfectMatch = true;
           let positionMatches = 0;
 
+          console.log(`Processing prediction for user ${prediction.user_id}: ${prediction.predictions}`);
+
           prediction.predictions.forEach((candidateId: string, index: number) => {
             const candidate = candidates.find(c => c.id === candidateId);
-            if (!candidate) return;
+            if (!candidate) {
+              console.log(`Candidate ${candidateId} not found`);
+              return;
+            }
+
+            console.log(`Position ${index + 1}, Candidate ${candidateId}, Ranking: ${candidate.ranking}`);
 
             // Points for being in top 15
             if (['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5', 'top15'].includes(candidate.ranking)) {
               totalScore += 10;
+              console.log('Added 10 points for top 15');
             }
 
             // Points for being in top 5
             if (['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5'].includes(candidate.ranking)) {
               totalScore += 20;
+              console.log('Added 20 points for top 5');
             }
 
             // Points for correct position
@@ -142,6 +151,7 @@ serve(async (req) => {
             ) {
               totalScore += 50;
               positionMatches++;
+              console.log('Added 50 points for correct position');
             } else {
               perfectMatch = false;
             }
@@ -149,15 +159,17 @@ serve(async (req) => {
             // Winner bonus
             if (candidate.ranking === 'miss_france' && index === 0) {
               totalScore += 50;
+              console.log('Added 50 points for winner bonus');
             }
           });
 
           // Perfect match bonus
           if (perfectMatch && positionMatches === 5) {
             totalScore += 200;
+            console.log('Added 200 points for perfect match bonus');
           }
 
-          console.log(`Calculated score for user ${prediction.user_id}: ${totalScore} points`);
+          console.log(`Final score for user ${prediction.user_id}: ${totalScore}, Perfect match: ${perfectMatch}`);
 
           // Update score
           const { error: scoreError } = await supabase
@@ -171,6 +183,8 @@ serve(async (req) => {
 
           if (scoreError) {
             console.error(`Error updating score for user ${prediction.user_id}:`, scoreError);
+          } else {
+            console.log(`Successfully updated score for user ${prediction.user_id}`);
           }
         }
       } catch (error) {
