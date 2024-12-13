@@ -1,6 +1,7 @@
 // Replace these with your values
 const SUPABASE_FUNCTION_URL = 'https://jcdfnkuocpnvniqvqcjm.supabase.co/functions/v1/sync-sheet-data';
 const WEBHOOK_SECRET = ''; // You'll set this in Supabase secrets
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjZGZua3VvY3Budm5pcXZxY2ptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1MDk4MzMsImV4cCI6MjA0OTA4NTgzM30.JibNC9wcS1n4au1u0eaCTBGhQw5W8uZw2c_Pvw5bvfE';
 
 // Get sheet data as array of objects
 function getSheetData(sheet) {
@@ -39,6 +40,10 @@ function sendToSupabase(sheetType, data) {
   const options = {
     method: 'post',
     contentType: 'application/json',
+    headers: {
+      'Authorization': `Bearer ${ANON_KEY}`,
+      'apikey': ANON_KEY
+    },
     payload: JSON.stringify({
       sheetType,
       data,
