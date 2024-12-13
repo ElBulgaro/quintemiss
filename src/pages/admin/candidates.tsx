@@ -2,8 +2,7 @@ import { useState } from "react";
 import { CandidatesManagement } from "@/components/admin/CandidatesManagement";
 import { CandidateImport } from "@/components/admin/CandidateImport";
 import { CandidateForm } from "@/components/admin/CandidateForm";
-import { SemiFinalistSelection } from "@/components/admin/SemiFinalistSelection";
-import { FinalRankingSelection } from "@/components/admin/FinalRankingSelection";
+import { ResultsTable } from "@/components/admin/results/ResultsTable";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Candidate } from "@/data/types";
@@ -31,9 +30,6 @@ export default function AdminCandidates() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
-  const [semiFinalists, setSemiFinalists] = useState<string[]>([]);
-  const [finalRanking, setFinalRanking] = useState<string[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
 
   const { data: candidates, isLoading } = useQuery({
     queryKey: ['candidates'],
@@ -64,26 +60,6 @@ export default function AdminCandidates() {
     console.log("Deleting candidate:", selectedCandidate);
     setIsDeleteDialogOpen(false);
     toast.success("Candidate deleted successfully!");
-  };
-
-  const handleSaveResults = async () => {
-    try {
-      setIsSaving(true);
-      const { error } = await supabase
-        .from('official_results')
-        .insert({
-          semi_finalists: semiFinalists,
-          final_ranking: finalRanking,
-        });
-
-      if (error) throw error;
-      toast.success("Official results saved successfully!");
-    } catch (error) {
-      console.error('Error saving results:', error);
-      toast.error("Failed to save official results");
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   const handleImportConfirm = (importedCandidates: any[]) => {
@@ -134,25 +110,9 @@ export default function AdminCandidates() {
         </TabsContent>
 
         <TabsContent value="results">
-          <div className="space-y-12">
-            <SemiFinalistSelection
-              candidates={candidates || []}
-              semiFinalists={semiFinalists}
-              onToggleSemiFinalist={(id) => setSemiFinalists(prev => 
-                prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-              )}
-            />
-
-            {semiFinalists.length === 15 && (
-              <FinalRankingSelection
-                candidates={candidates || []}
-                semiFinalists={semiFinalists}
-                finalRanking={finalRanking}
-                onUpdateFinalRanking={setFinalRanking}
-                onSaveResults={handleSaveResults}
-                isSaving={isSaving}
-              />
-            )}
+          <div className="space-y-6">
+            <h2 className="text-3xl font-playfair font-bold">Official Results</h2>
+            <ResultsTable candidates={candidates || []} />
           </div>
         </TabsContent>
       </Tabs>
