@@ -12,11 +12,10 @@ export function OfficialResults() {
         .from('official_results')
         .select('*')
         .order('submitted_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
       
       if (error) throw error;
-      return data;
+      return data?.[0] || null;
     },
   });
 
