@@ -17,7 +17,7 @@ export function CandidateSocialLinks({ instagram, portrait_url }: CandidateSocia
           title="Voir le portrait TF1"
         >
           <Tv className="h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-          <span className="hidden sm:inline">Portrait Vidéo</span>
+          <span>Portrait Vidéo</span>
         </a>
       )}
       {instagram && (
