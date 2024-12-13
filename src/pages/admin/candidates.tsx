@@ -38,7 +38,7 @@ export default function AdminCandidates() {
     queryKey: ['candidates'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('candidates')
+        .from('sheet_candidates')
         .select('*')
         .order('name');
       

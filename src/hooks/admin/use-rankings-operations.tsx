@@ -16,51 +16,46 @@ export function useRankingsOperations(
     try {
       const { data: latestEvent } = await supabase
         .from('official_results')
-        .select('id')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
       if (!latestEvent) return;
 
-      const { data: existingRankings, error } = await supabase
-        .from('rankings')
-        .select('*')
-        .eq('event_id', latestEvent.id);
-
-      if (error) throw error;
-
       const newRankings = { ...rankings };
       
-      existingRankings.forEach(ranking => {
-        if (!newRankings[ranking.candidate_id]) return;
+      latestEvent.semi_finalists.forEach((candidateId: string) => {
+        if (newRankings[candidateId]) {
+          newRankings[candidateId].top15 = true;
+        }
+      });
 
-        switch (ranking.ranking_type) {
-          case 'TOP_15':
-            newRankings[ranking.candidate_id].top15 = true;
-            break;
-          case 'TOP_5':
-            newRankings[ranking.candidate_id].top5 = true;
-            break;
-          case 'FINAL':
-            switch (ranking.position) {
-              case 0:
-                newRankings[ranking.candidate_id].winner = true;
-                break;
-              case 1:
-                newRankings[ranking.candidate_id].first = true;
-                break;
-              case 2:
-                newRankings[ranking.candidate_id].second = true;
-                break;
-              case 3:
-                newRankings[ranking.candidate_id].third = true;
-                break;
-              case 4:
-                newRankings[ranking.candidate_id].fourth = true;
-                break;
-            }
-            break;
+      latestEvent.top_5?.forEach((candidateId: string) => {
+        if (newRankings[candidateId]) {
+          newRankings[candidateId].top5 = true;
+        }
+      });
+
+      latestEvent.final_ranking.forEach((candidateId: string, index: number) => {
+        if (newRankings[candidateId]) {
+          switch (index) {
+            case 0:
+              newRankings[candidateId].winner = true;
+              break;
+            case 1:
+              newRankings[candidateId].first = true;
+              break;
+            case 2:
+              newRankings[candidateId].second = true;
+              break;
+            case 3:
+              newRankings[candidateId].third = true;
+              break;
+            case 4:
+              newRankings[candidateId].fourth = true;
+              break;
+          }
         }
       });
 

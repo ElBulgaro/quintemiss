@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
-import type { Candidate } from "@/data/candidates";
+import type { Candidate } from "@/data/types";
 
 interface CandidateImportProps {
   onConfirm: (candidates: Candidate[]) => void;
@@ -72,7 +72,7 @@ export function CandidateImport({ onConfirm }: CandidateImportProps) {
 
       // Insert into Supabase
       const { data: insertedCandidates, error } = await supabase
-        .from('candidates')
+        .from('sheet_candidates')
         .insert(candidatesForDb)
         .select();
 

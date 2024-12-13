@@ -6,39 +6,6 @@ import type { Candidate } from "@/data/types";
 export function useSemiFinalistRankings() {
   const [isSaving, setIsSaving] = useState(false);
 
-  const saveRanking = async (candidateId: string, eventId: string) => {
-    try {
-      const { error } = await supabase
-        .from('rankings')
-        .insert({
-          event_id: eventId,
-          candidate_id: candidateId,
-          ranking_type: 'TOP_15',
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error saving ranking:', error);
-      throw error;
-    }
-  };
-
-  const removeRanking = async (candidateId: string, eventId: string) => {
-    try {
-      const { error } = await supabase
-        .from('rankings')
-        .delete()
-        .eq('event_id', eventId)
-        .eq('candidate_id', candidateId)
-        .eq('ranking_type', 'TOP_15');
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error removing ranking:', error);
-      throw error;
-    }
-  };
-
   const handleToggleSemiFinalist = async (
     candidateId: string,
     currentSemiFinalists: string[],
@@ -55,7 +22,7 @@ export function useSemiFinalistRankings() {
       // Get or create event
       const { data: existingEvent } = await supabase
         .from('official_results')
-        .select('id')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -77,20 +44,15 @@ export function useSemiFinalistRankings() {
         eventId = newEvent.id;
       }
 
-      // Update rankings table
-      if (currentSemiFinalists.includes(candidateId)) {
-        await removeRanking(candidateId, eventId);
-      } else if (currentSemiFinalists.length < 15) {
-        await saveRanking(candidateId, eventId);
-      } else {
-        toast.error("Maximum 15 semi-finalists allowed");
-        return null;
-      }
-
-      // Keep official_results in sync for backward compatibility
+      // Update semi-finalists array
       const updatedSemiFinalists = currentSemiFinalists.includes(candidateId)
         ? currentSemiFinalists.filter(id => id !== candidateId)
         : [...currentSemiFinalists, candidateId];
+
+      if (updatedSemiFinalists.length > 15) {
+        toast.error("Maximum 15 semi-finalists allowed");
+        return null;
+      }
 
       const { error: updateError } = await supabase
         .from('official_results')

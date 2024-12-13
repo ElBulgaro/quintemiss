@@ -10,4 +10,5 @@ export interface Candidate {
   instagram?: string | null;
   created_at?: string;
   updated_at?: string;
+  ranking?: string | null;
 }
