@@ -99,6 +99,16 @@ export default function Predictions() {
     }
   };
 
+  const getSelectionMessage = () => {
+    if (selectedCandidates.length < 5) {
+      return "Complétez votre Top 5 pour valider vos prédictions";
+    }
+    if (selectedCandidates.length > 5) {
+      return "Réduisez votre sélection à 5 candidates pour valider vos prédictions";
+    }
+    return null;
+  };
+
   if (!isAuthenticated) {
     return null;
   }
