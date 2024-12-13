@@ -93,14 +93,6 @@ function manualSync() {
       return;
     }
     
-    // Show progress dialog
-    SpreadsheetApp.getUi().showModalDialog(
-      HtmlService.createHtmlOutput('<p>Syncing data... Please wait.</p>')
-        .setWidth(300)
-        .setHeight(100),
-      'Sync Progress'
-    );
-    
     let syncSuccess = true;
     
     // Sync candidates
