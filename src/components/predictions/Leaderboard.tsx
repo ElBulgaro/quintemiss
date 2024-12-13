@@ -10,6 +10,7 @@ export function Leaderboard() {
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
+      console.log('Current user:', session.user);
       return session.user;
     },
   });
@@ -17,20 +18,31 @@ export function Leaderboard() {
   const { data: leaderboard, isLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
+      console.log('Fetching leaderboard data...');
       const { data: scores, error: scoresError } = await supabase
         .from('scores')
         .select('user_id, score, perfect_match')
         .order('score', { ascending: false })
         .limit(10);
 
-      if (scoresError) throw scoresError;
+      if (scoresError) {
+        console.error('Error fetching scores:', scoresError);
+        throw scoresError;
+      }
+
+      console.log('Fetched scores:', scores);
 
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, username')
         .in('id', scores.map(score => score.user_id));
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+
+      console.log('Fetched profiles:', profiles);
 
       const combinedData = scores.map(score => {
         const profile = profiles.find(p => p.id === score.user_id);
@@ -40,6 +52,7 @@ export function Leaderboard() {
         };
       });
 
+      console.log('Combined leaderboard data:', combinedData);
       return combinedData;
     },
   });
@@ -48,16 +61,20 @@ export function Leaderboard() {
     queryKey: ['user-score'],
     enabled: !!currentUser,
     queryFn: async () => {
+      console.log('Fetching user score for:', currentUser?.id);
       const { data, error } = await supabase
         .from('scores')
-        .select('score')
+        .select('score, perfect_match')
         .eq('user_id', currentUser?.id)
-        .limit(1);  // Add limit to ensure we only get one row
+        .limit(1);
 
-      if (error) throw error;
-      
-      // Return the first score or a default score object
-      return data?.[0] || { score: 0 };
+      if (error) {
+        console.error('Error fetching user score:', error);
+        throw error;
+      }
+
+      console.log('User score data:', data);
+      return data?.[0] || { score: 0, perfect_match: false };
     },
   });
 
@@ -65,16 +82,22 @@ export function Leaderboard() {
     queryKey: ['user-rank'],
     enabled: !!currentUser && !!userScore,
     queryFn: async () => {
-      // If user has no score yet, they're last
+      console.log('Calculating user rank...');
       if (!userScore?.score) return "N/A";
 
       const { count, error } = await supabase
         .from('scores')
         .select('*', { count: 'exact', head: true })
-        .gt('score', userScore.score || 0);
+        .gt('score', userScore.score);
 
-      if (error) throw error;
-      return (count || 0) + 1;
+      if (error) {
+        console.error('Error calculating rank:', error);
+        throw error;
+      }
+
+      const rank = (count || 0) + 1;
+      console.log('User rank:', rank);
+      return rank;
     },
   });
 
