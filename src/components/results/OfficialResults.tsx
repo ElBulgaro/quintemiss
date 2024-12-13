@@ -2,8 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
-import { calculateScore } from "@/utils/calculateScore";
 
 export function OfficialResults() {
   const { data: userPredictions } = useQuery({
@@ -16,10 +14,11 @@ export function OfficialResults() {
         .from('predictions')
         .select('*')
         .eq('user_id', session.user.id)
-        .single();
+        .order('submitted_at', { ascending: false })
+        .limit(1);
 
       if (error) throw error;
-      return data;
+      return data?.[0] || null;
     },
   });
 
@@ -88,7 +87,6 @@ export function OfficialResults() {
     return points;
   };
 
-  // ... keep existing rendering code but update the card rendering to include points:
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
