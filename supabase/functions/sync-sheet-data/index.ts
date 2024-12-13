@@ -38,7 +38,10 @@ serve(async (req) => {
         image_url: candidate["Photo URL (Maillot)"],
         official_photo_url: candidate["Photo URL (Costume)"],
         portrait_url: candidate["URL Portrait TF1"] || null,
-        ranking: candidate["Classement"] || 'inconnu',
+        ranking: candidate["Classement"]?.toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
+          .replace(/[^a-z0-9]+/g, '_') // Replace spaces and special chars with underscore
+          .replace(/^_+|_+$/g, '') || 'inconnu', // Remove leading/trailing underscores
         last_synced_at: new Date().toISOString(),
       }));
 
@@ -48,24 +51,24 @@ serve(async (req) => {
       for (const candidate of candidatesForDb) {
         try {
           // First try to find an existing candidate by name and region
-          const { data: existingCandidates, error: findError } = await supabase
+          const { data: existingCandidate, error: findError } = await supabase
             .from('sheet_candidates')
-            .select('id, name, region')
+            .select('id')
             .eq('name', candidate.name)
             .eq('region', candidate.region)
-            .single();
+            .maybeSingle();
 
-          if (findError && findError.code !== 'PGRST116') { // Ignore "no rows returned" error
+          if (findError) {
             console.error('Error finding existing candidate:', findError);
             throw findError;
           }
 
-          if (existingCandidates) {
+          if (existingCandidate) {
             // Update existing candidate
             const { error: updateError } = await supabase
               .from('sheet_candidates')
               .update(candidate)
-              .eq('id', existingCandidates.id);
+              .eq('id', existingCandidate.id);
 
             if (updateError) {
               console.error('Error updating candidate:', updateError);
