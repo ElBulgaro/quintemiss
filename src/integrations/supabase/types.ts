@@ -9,48 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      candidates: {
-        Row: {
-          age: number | null
-          bio: string | null
-          created_at: string
-          id: string
-          image_url: string
-          instagram: string | null
-          name: string
-          official_photo_url: string | null
-          portrait_url: string | null
-          region: string
-          updated_at: string
-        }
-        Insert: {
-          age?: number | null
-          bio?: string | null
-          created_at?: string
-          id?: string
-          image_url: string
-          instagram?: string | null
-          name: string
-          official_photo_url?: string | null
-          portrait_url?: string | null
-          region: string
-          updated_at?: string
-        }
-        Update: {
-          age?: number | null
-          bio?: string | null
-          created_at?: string
-          id?: string
-          image_url?: string
-          instagram?: string | null
-          name?: string
-          official_photo_url?: string | null
-          portrait_url?: string | null
-          region?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       official_results: {
         Row: {
           created_at: string
@@ -182,51 +140,6 @@ export type Database = {
           username?: string
         }
         Relationships: []
-      }
-      rankings: {
-        Row: {
-          candidate_id: string
-          created_at: string
-          event_id: string
-          id: string
-          position: number | null
-          ranking_type: string
-          updated_at: string
-        }
-        Insert: {
-          candidate_id: string
-          created_at?: string
-          event_id: string
-          id?: string
-          position?: number | null
-          ranking_type: string
-          updated_at?: string
-        }
-        Update: {
-          candidate_id?: string
-          created_at?: string
-          event_id?: string
-          id?: string
-          position?: number | null
-          ranking_type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rankings_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rankings_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "official_results"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       scores: {
         Row: {
