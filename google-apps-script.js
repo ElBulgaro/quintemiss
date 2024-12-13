@@ -49,7 +49,7 @@ function sendToSupabase(sheetType, data) {
       data,
       secret: WEBHOOK_SECRET
     }),
-    muteHttpExceptions: true, // This prevents the script from failing on HTTP errors
+    muteHttpExceptions: true,
     timeout: 30000 // 30 second timeout
   };
   

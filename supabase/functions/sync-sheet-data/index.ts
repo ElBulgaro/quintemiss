@@ -25,16 +25,9 @@ serve(async (req) => {
       throw new Error('Invalid webhook secret');
     }
 
-    console.log(`Received ${sheetType} update:`, data);
+    console.log(`Received ${sheetType} update with ${data.length} records`);
 
     if (sheetType === 'candidates') {
-      // Get existing candidates to determine which ones to update vs insert
-      const { data: existingCandidates, error: fetchError } = await supabase
-        .from('sheet_candidates')
-        .select('id, name, region');
-
-      if (fetchError) throw fetchError;
-
       // Map the incoming data
       const candidatesForDb = data.map((candidate: any) => ({
         name: candidate["Nom Complet"],
@@ -49,29 +42,66 @@ serve(async (req) => {
         last_synced_at: new Date().toISOString(),
       }));
 
-      // Update existing candidates
-      for (const candidate of candidatesForDb) {
-        const existingCandidate = existingCandidates?.find(
-          (ec) => ec.name === candidate.name && ec.region === candidate.region
-        );
+      // Get all prediction items that reference sheet_candidates
+      const { data: predictionItems } = await supabase
+        .from('prediction_items')
+        .select('candidate_id');
 
-        if (existingCandidate) {
-          // Update existing candidate
+      // Get unique candidate IDs from prediction items
+      const referencedCandidateIds = new Set(predictionItems?.map(item => item.candidate_id) || []);
+
+      // Get existing candidates that are referenced in predictions
+      const { data: existingCandidates } = await supabase
+        .from('sheet_candidates')
+        .select('id, name, region')
+        .in('id', Array.from(referencedCandidateIds));
+
+      // Create a map of name+region to ID for referenced candidates
+      const referencedCandidatesMap = new Map(
+        existingCandidates?.map(c => [`${c.name}-${c.region}`, c.id]) || []
+      );
+
+      // First, handle referenced candidates to maintain foreign key constraints
+      for (const candidate of candidatesForDb) {
+        const key = `${candidate.name}-${candidate.region}`;
+        const existingId = referencedCandidatesMap.get(key);
+        
+        if (existingId) {
+          // Update existing referenced candidate
           const { error: updateError } = await supabase
             .from('sheet_candidates')
             .update(candidate)
-            .eq('id', existingCandidate.id);
+            .eq('id', existingId);
 
-          if (updateError) throw updateError;
-        } else {
-          // Insert new candidate
-          const { error: insertError } = await supabase
-            .from('sheet_candidates')
-            .insert([candidate]);
-
-          if (insertError) throw insertError;
+          if (updateError) {
+            console.error('Error updating referenced candidate:', updateError);
+            throw updateError;
+          }
         }
       }
+
+      // Now delete all non-referenced candidates
+      const { error: deleteError } = await supabase
+        .from('sheet_candidates')
+        .delete()
+        .not('id', 'in', `(${Array.from(referencedCandidateIds).map(id => `'${id}'`).join(',')})`);
+
+      if (deleteError) {
+        console.error('Error deleting non-referenced candidates:', deleteError);
+        throw deleteError;
+      }
+
+      // Finally, insert all new candidates
+      const { error: insertError } = await supabase
+        .from('sheet_candidates')
+        .insert(candidatesForDb);
+
+      if (insertError) {
+        console.error('Error inserting new candidates:', insertError);
+        throw insertError;
+      }
+
+      console.log('Successfully synced all candidates');
     }
 
     return new Response(JSON.stringify({ success: true }), {
