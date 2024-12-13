@@ -52,6 +52,16 @@ export function CandidatesGrid({ searchQuery = "", singleColumn = false }: Candi
     );
   }
 
+  if (!candidates?.length) {
+    return (
+      <div className="container mx-auto py-12 text-center">
+        <p className="text-lg text-rich-black/60">
+          Aucune candidate n'a été trouvée. Veuillez synchroniser les données depuis Google Sheets.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <motion.div 
       className={`container grid ${isMobile ? (singleColumn ? 'grid-cols-1' : 'grid-cols-2') : (singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4')} ${isMobile ? 'gap-3 px-2' : 'gap-6 px-4 sm:px-6 lg:px-8'} max-w-7xl mx-auto`}
