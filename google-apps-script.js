@@ -2,34 +2,6 @@
 const SUPABASE_FUNCTION_URL = 'https://jcdfnkuocpnvniqvqcjm.supabase.co/functions/v1/sync-sheet-data';
 const WEBHOOK_SECRET = ''; // You'll set this in Supabase secrets
 
-// This function runs when the sheet is edited
-function onEdit(e) {
-  if (!e || !e.source) {
-    console.error('Invalid edit event');
-    return;
-  }
-
-  const sheet = e.source.getActiveSheet();
-  if (!sheet) {
-    console.error('Could not get active sheet');
-    return;
-  }
-
-  const sheetName = sheet.getName().toLowerCase();
-  
-  // Only process 'candidates' or 'results' sheets
-  if (!['candidates', 'results'].includes(sheetName)) {
-    console.log('Skipping sync for sheet:', sheetName);
-    return;
-  }
-  
-  // Get all data from the sheet
-  const data = getSheetData(sheet);
-  
-  // Send to Supabase
-  sendToSupabase(sheetName, data);
-}
-
 // Get sheet data as array of objects
 function getSheetData(sheet) {
   try {
