@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import type { Candidate } from "@/data/types";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface SemiFinalistSelectionProps {
   candidates: Candidate[];
@@ -14,7 +15,30 @@ export function SemiFinalistSelection({
   semiFinalists,
   onToggleSemiFinalist,
 }: SemiFinalistSelectionProps) {
+  // Query to check if user is admin
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handleToggle = async (candidateId: string) => {
+    if (!profile?.is_admin) {
+      toast.error("Only administrators can modify semi-finalists");
+      return;
+    }
+
     if (semiFinalists.includes(candidateId)) {
       onToggleSemiFinalist(candidateId);
       await saveResults(semiFinalists.filter(id => id !== candidateId));
@@ -28,6 +52,10 @@ export function SemiFinalistSelection({
 
   const saveResults = async (updatedSemiFinalists: string[]) => {
     try {
+      if (!profile?.is_admin) {
+        throw new Error('Only administrators can save results');
+      }
+
       // Create a new official result
       const { data: officialResult, error: resultError } = await supabase
         .from('official_results')
@@ -54,9 +82,9 @@ export function SemiFinalistSelection({
       if (semiFinalistsError) throw semiFinalistsError;
 
       toast.success("Semi-finalist selection saved");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving results:', error);
-      toast.error("Failed to save selection");
+      toast.error(error.message || "Failed to save selection");
     }
   };
 
