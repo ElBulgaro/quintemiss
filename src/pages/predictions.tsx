@@ -131,7 +131,7 @@ export default function Predictions() {
                   Sélectionner des candidates ({selectedCandidates.length}/5)
                 </Button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="h-[80vh] sm:h-[90vh]">
+              <SheetContent side="bottom" className="h-[80vh] sm:h-[90vh] p-0">
                 <CandidatesList
                   selectedCandidates={selectedCandidates}
                   onCandidateSelect={handleCandidateSelect}
