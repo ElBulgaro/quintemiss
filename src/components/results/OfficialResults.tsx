@@ -83,7 +83,6 @@ export function OfficialResults() {
     );
   }
 
-  // If there are no candidates, show a message
   if (!candidates?.length) {
     return (
       <div className="space-y-6">
@@ -100,7 +99,6 @@ export function OfficialResults() {
     );
   }
 
-  // Sort candidates based on ranking
   const sortedCandidates = [...candidates].sort((a, b) => {
     const rankingA = a.ranking || 'inconnu';
     const rankingB = b.ranking || 'inconnu';
@@ -150,11 +148,13 @@ export function OfficialResults() {
                   )}
                 </div>
                 <div className="flex items-center gap-4">
-                  <img
-                    src={candidate.image_url || '/placeholder.svg'}
-                    alt={candidate.name}
-                    className="h-12 w-12 object-cover rounded-full"
-                  />
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                    <img
+                      src={candidate.official_photo_url || candidate.image_url}
+                      alt={candidate.name}
+                      className="absolute w-[400%] h-[400%] object-cover object-top left-1/2 -translate-x-1/2"
+                    />
+                  </div>
                   <div>
                     <h3 className="font-semibold">{candidate.name}</h3>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
