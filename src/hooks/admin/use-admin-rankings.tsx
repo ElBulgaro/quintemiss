@@ -1,6 +1,6 @@
-import { useRankingsState } from "@/hooks/admin/use-rankings-state";
-import { useRankingsRealtime } from "@/hooks/admin/use-rankings-realtime";
-import { useRankingsOperations } from "@/hooks/admin/use-rankings-operations";
+import { useRankingsState } from "./use-rankings-state";
+import { useRankingsRealtime } from "./use-rankings-realtime";
+import { useRankingsOperations } from "./use-rankings-operations";
 import type { Candidate } from "@/data/types";
 
 export function useAdminRankings(candidates: Candidate[]) {
