@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Candidate } from "@/data/types";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,6 +53,8 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+
+  const queryClient = useQueryClient();
 
   // Load existing results when component mounts
   useEffect(() => {
@@ -188,11 +191,11 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
     try {
       setIsClearing(true);
       
-      // Delete all results
+      // Delete all records from official_results
       const { error } = await supabase
         .from('official_results')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // This will delete all records
+        .not('id', 'is', null); // This will delete all records
 
       if (error) throw error;
 
@@ -210,6 +213,9 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
         };
       });
       setResults(clearedResults);
+      
+      // Invalidate queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['officialResults'] });
       
       setIsClearDialogOpen(false);
       toast.success("All results have been cleared");
