@@ -62,35 +62,27 @@ export const usePredictions = () => {
       console.log('Calculating score for predictions:', predictions);
       
       // Get current rankings
-      const { data: candidates, error: rankingsError } = await supabase
-        .from('sheet_candidates')
-        .select('id, ranking')
-        .not('ranking', 'is', null);
+      const { data: officialResults, error: resultsError } = await supabase
+        .from('official_results')
+        .select('semi_finalists, final_ranking')
+        .limit(1)
+        .single();
 
-      if (rankingsError) throw rankingsError;
+      if (resultsError) throw resultsError;
 
-      // Get final ranking order
-      const finalRanking = ['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine']
-        .map(rank => {
-          const candidate = candidates.find(c => c.ranking === rank);
-          return candidate ? candidate.id : null;
-        })
-        .filter((id): id is string => id !== null);
-
-      // Get semi-finalists
-      const semiFinalists = candidates
-        .filter(c => ['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5', 'top15']
-        .includes(c.ranking))
-        .map(c => c.id);
-
-      console.log('Final ranking:', finalRanking);
-      console.log('Semi-finalists:', semiFinalists);
+      console.log('Final ranking:', officialResults.final_ranking);
+      console.log('Semi-finalists:', officialResults.semi_finalists);
 
       // Calculate score
-      const { score, perfectMatch } = calculateScore(predictions, finalRanking, semiFinalists);
+      const { score, perfectMatch } = calculateScore(
+        predictions, 
+        officialResults.final_ranking || [], 
+        officialResults.semi_finalists || []
+      );
+      
       console.log('Calculated score:', score, 'Perfect match:', perfectMatch);
 
-      // Save score
+      // Use upsert to handle both insert and update cases
       const { error: scoreError } = await supabase
         .from('scores')
         .upsert({
@@ -98,6 +90,8 @@ export const usePredictions = () => {
           score,
           perfect_match: perfectMatch,
           scored_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
         });
 
       if (scoreError) throw scoreError;
