@@ -4,11 +4,24 @@ const WEBHOOK_SECRET = ''; // You'll set this in Supabase secrets
 
 // This function runs when the sheet is edited
 function onEdit(e) {
+  if (!e || !e.source) {
+    console.error('Invalid edit event');
+    return;
+  }
+
   const sheet = e.source.getActiveSheet();
+  if (!sheet) {
+    console.error('Could not get active sheet');
+    return;
+  }
+
   const sheetName = sheet.getName().toLowerCase();
   
   // Only process 'candidates' or 'results' sheets
-  if (!['candidates', 'results'].includes(sheetName)) return;
+  if (!['candidates', 'results'].includes(sheetName)) {
+    console.log('Skipping sync for sheet:', sheetName);
+    return;
+  }
   
   // Get all data from the sheet
   const data = getSheetData(sheet);
@@ -19,16 +32,38 @@ function onEdit(e) {
 
 // Get sheet data as array of objects
 function getSheetData(sheet) {
-  const [headers, ...rows] = sheet.getDataRange().getValues();
-  return rows.map(row => {
-    const obj = {};
-    headers.forEach((header, i) => obj[header] = row[i]);
-    return obj;
-  });
+  try {
+    const range = sheet.getDataRange();
+    if (!range) {
+      console.error('No data range found in sheet');
+      return [];
+    }
+
+    const values = range.getValues();
+    if (!values || values.length === 0) {
+      console.error('No data found in sheet');
+      return [];
+    }
+
+    const [headers, ...rows] = values;
+    return rows.map(row => {
+      const obj = {};
+      headers.forEach((header, i) => obj[header] = row[i]);
+      return obj;
+    });
+  } catch (error) {
+    console.error('Error getting sheet data:', error);
+    return [];
+  }
 }
 
 // Send data to Supabase Edge Function
 function sendToSupabase(sheetType, data) {
+  if (!data || data.length === 0) {
+    console.error('No data to sync');
+    return;
+  }
+
   const options = {
     method: 'post',
     contentType: 'application/json',
@@ -49,27 +84,46 @@ function sendToSupabase(sheetType, data) {
 
 // Add this menu item to manually trigger sync
 function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('Sync')
-    .addItem('Sync Now', 'manualSync')
-    .addToUi();
+  try {
+    const ui = SpreadsheetApp.getUi();
+    ui.createMenu('Sync')
+      .addItem('Sync Now', 'manualSync')
+      .addToUi();
+  } catch (error) {
+    console.error('Error creating menu:', error);
+  }
 }
 
 // Manual sync function
 function manualSync() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  // Sync candidates
-  const candidatesSheet = ss.getSheetByName('Candidates');
-  if (candidatesSheet) {
-    sendToSupabase('candidates', getSheetData(candidatesSheet));
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss) {
+      console.error('Could not get active spreadsheet');
+      return;
+    }
+    
+    // Sync candidates
+    const candidatesSheet = ss.getSheetByName('Candidates');
+    if (candidatesSheet) {
+      const candidatesData = getSheetData(candidatesSheet);
+      if (candidatesData.length > 0) {
+        sendToSupabase('candidates', candidatesData);
+      }
+    }
+    
+    // Sync results
+    const resultsSheet = ss.getSheetByName('Results');
+    if (resultsSheet) {
+      const resultsData = getSheetData(resultsSheet);
+      if (resultsData.length > 0) {
+        sendToSupabase('results', resultsData);
+      }
+    }
+    
+    SpreadsheetApp.getUi().alert('Sync completed!');
+  } catch (error) {
+    console.error('Error in manual sync:', error);
+    SpreadsheetApp.getUi().alert('Error during sync. Check logs for details.');
   }
-  
-  // Sync results
-  const resultsSheet = ss.getSheetByName('Results');
-  if (resultsSheet) {
-    sendToSupabase('results', getSheetData(resultsSheet));
-  }
-  
-  SpreadsheetApp.getUi().alert('Sync completed!');
 }
