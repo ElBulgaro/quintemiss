@@ -76,25 +76,33 @@ export function useRankingsOperations(
       setIsSaving(true);
       const candidateRankings = { ...rankings[candidateId] };
 
-      const { data: latestEvent } = await supabase
+      // Get or create event
+      const { data: existingEvent } = await supabase
         .from('official_results')
         .select('id')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
-      if (!latestEvent) {
+      let eventId: string;
+
+      if (!existingEvent) {
         const { data: newEvent, error: eventError } = await supabase
           .from('official_results')
           .insert({
             semi_finalists: [],
             final_ranking: [],
+            top_5: [],
+            ordered_ranking: [],
             submitted_at: new Date().toISOString(),
           })
           .select()
           .single();
 
         if (eventError) throw eventError;
+        eventId = newEvent.id;
+      } else {
+        eventId = existingEvent.id;
       }
 
       if (field === 'top15') {
@@ -102,7 +110,7 @@ export function useRankingsOperations(
           await supabase
             .from('rankings')
             .insert({
-              event_id: latestEvent.id,
+              event_id: eventId,
               candidate_id: candidateId,
               ranking_type: 'TOP_15',
             });
@@ -111,7 +119,7 @@ export function useRankingsOperations(
           await supabase
             .from('rankings')
             .delete()
-            .eq('event_id', latestEvent.id)
+            .eq('event_id', eventId)
             .eq('candidate_id', candidateId);
           candidateRankings.top15 = false;
           candidateRankings.top5 = false;
@@ -130,7 +138,7 @@ export function useRankingsOperations(
           await supabase
             .from('rankings')
             .insert({
-              event_id: latestEvent.id,
+              event_id: eventId,
               candidate_id: candidateId,
               ranking_type: 'TOP_5',
             });
@@ -139,7 +147,7 @@ export function useRankingsOperations(
           await supabase
             .from('rankings')
             .delete()
-            .eq('event_id', latestEvent.id)
+            .eq('event_id', eventId)
             .eq('candidate_id', candidateId)
             .in('ranking_type', ['TOP_5', 'FINAL']);
           candidateRankings.top5 = false;
@@ -160,7 +168,7 @@ export function useRankingsOperations(
           await supabase
             .from('rankings')
             .upsert({
-              event_id: latestEvent.id,
+              event_id: eventId,
               candidate_id: candidateId,
               ranking_type: 'FINAL',
               position,

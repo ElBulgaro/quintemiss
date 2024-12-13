@@ -18,16 +18,17 @@ export function useFinalRanking() {
     try {
       setIsSaving(true);
 
-      // Create final ranking entries
-      const finalRankingItems = finalRanking.map((candidateId, index) => ({
-        official_result_id: officialResultId,
+      // Create final ranking entries in the rankings table
+      const rankingItems = finalRanking.map((candidateId, index) => ({
+        event_id: officialResultId,
         candidate_id: candidateId,
-        position: index + 1,
+        ranking_type: 'FINAL',
+        position: index,
       }));
 
       const { error: rankingError } = await supabase
-        .from('final_rankings')
-        .insert(finalRankingItems);
+        .from('rankings')
+        .insert(rankingItems);
 
       if (rankingError) throw rankingError;
 

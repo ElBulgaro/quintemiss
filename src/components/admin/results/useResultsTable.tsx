@@ -1,133 +1,54 @@
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import type { Candidate } from "@/data/types";
+import { CandidateRow } from "./CandidateRow";
+import { ClearResultsDialog } from "./ClearResultsDialog";
+import { useState } from "react";
+import { useAdminRankings } from "@/hooks/admin/use-admin-rankings";
 
-type ResultState = {
-  [key: string]: {
-    top15: boolean;
-    top5: boolean;
-    fourth: boolean;
-    third: boolean;
-    second: boolean;
-    first: boolean;
-    winner: boolean;
-  };
-};
+interface ResultsTableProps {
+  candidates: Candidate[];
+}
 
-export function useResultsTable(candidates: Candidate[]) {
-  const [results, setResults] = useState<ResultState>(() => {
-    const initial: ResultState = {};
-    candidates.forEach(candidate => {
-      initial[candidate.id] = {
-        top15: false,
-        top5: false,
-        fourth: false,
-        third: false,
-        second: false,
-        first: false,
-        winner: false,
-      };
-    });
-    return initial;
-  });
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [isClearing, setIsClearing] = useState(false);
+export function ResultsTable({ candidates }: ResultsTableProps) {
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
-  const queryClient = useQueryClient();
+  const {
+    rankings,
+    isSaving,
+    isClearing,
+    handleRankingChange,
+    clearAllRankings,
+  } = useAdminRankings(candidates);
 
-  useEffect(() => {
-    loadExistingResults();
-  }, []);
-
-  const loadExistingResults = async () => {
-    try {
-      const { data: officialResults, error } = await supabase
-        .from('official_results')
-        .select('*')
-        .order('submitted_at', { ascending: false })
-        .limit(1);
-
-      if (error) throw error;
-
-      if (officialResults?.[0]) {
-        const newResults: ResultState = {};
-        candidates.forEach(candidate => {
-          const isInTop15 = officialResults[0].semi_finalists?.includes(candidate.id) || false;
-          const isInTop5 = officialResults[0].top_5?.includes(candidate.id) || false;
-          const orderedRankingPosition = officialResults[0].ordered_ranking?.indexOf(candidate.id) ?? -1;
-          
-          newResults[candidate.id] = {
-            top15: isInTop15,
-            top5: isInTop5,
-            fourth: orderedRankingPosition === 4,
-            third: orderedRankingPosition === 3,
-            second: orderedRankingPosition === 2,
-            first: orderedRankingPosition === 1,
-            winner: orderedRankingPosition === 0,
-          };
-        });
-        setResults(newResults);
-      }
-    } catch (error) {
-      console.error('Error loading results:', error);
-      toast.error("Failed to load existing results");
-    }
-  };
-
-  const handleCheckboxChange = (candidateId: string, field: keyof ResultState[string]) => {
-    setResults(prev => {
-      const newResults = { ...prev };
-      const candidateResults = { ...newResults[candidateId] };
-
-      if (field === 'top15' && !candidateResults.top15) {
-        candidateResults.top15 = true;
-      } else if (field === 'top15' && candidateResults.top15) {
-        candidateResults.top15 = false;
-        candidateResults.top5 = false;
-        candidateResults.fourth = false;
-        candidateResults.third = false;
-        candidateResults.second = false;
-        candidateResults.first = false;
-        candidateResults.winner = false;
-      } else if (field === 'top5' && !candidateResults.top5) {
-        if (!candidateResults.top15) {
-          toast.error("Candidate must be in TOP 15 first");
-          return prev;
-        }
-        candidateResults.top5 = true;
-      } else if (field === 'top5' && candidateResults.top5) {
-        candidateResults.top5 = false;
-        candidateResults.fourth = false;
-        candidateResults.third = false;
-        candidateResults.second = false;
-        candidateResults.first = false;
-        candidateResults.winner = false;
-      } else {
-        if (!candidateResults.top5) {
-          toast.error("Candidate must be in TOP 5 first");
-          return prev;
-        }
-        candidateResults[field] = !candidateResults[field];
-      }
-
-      newResults[candidateId] = candidateResults;
-      return newResults;
-    });
-  };
+  const sortedCandidates = [...candidates].sort((a, b) => 
+    a.region.localeCompare(b.region)
+  );
 
   const handleSaveResults = async () => {
     try {
       setIsSaving(true);
+      
+      // Create a new official result if none exists
+      const { data: newEvent, error: eventError } = await supabase
+        .from('official_results')
+        .insert({
+          semi_finalists: [],
+          final_ranking: [],
+          top_5: [],
+          ordered_ranking: [],
+          submitted_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (eventError) throw eventError;
 
       // Convert results to arrays
       const semiFinalists: string[] = [];
       const top5: string[] = [];
       const orderedRanking: string[] = [];
 
-      Object.entries(results).forEach(([candidateId, state]) => {
+      Object.entries(rankings).forEach(([candidateId, state]) => {
         if (state.top15) {
           semiFinalists.push(candidateId);
         }
@@ -147,86 +68,74 @@ export function useResultsTable(candidates: Candidate[]) {
         }
       });
 
-      // First, check if there's an existing record
-      const { data: existingResults } = await supabase
-        .from('official_results')
-        .select('id')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      let upsertData = {
-        semi_finalists: semiFinalists,
-        final_ranking: orderedRanking.filter(Boolean), // Remove empty slots
-        top_5: top5,
-        ordered_ranking: orderedRanking,
-        submitted_at: new Date().toISOString(),
-      };
-
-      // If there's an existing record, include its ID for update
-      if (existingResults?.[0]?.id) {
-        upsertData = { ...upsertData, id: existingResults[0].id };
-      }
-
       const { error } = await supabase
         .from('official_results')
-        .upsert(upsertData);
+        .upsert({
+          id: newEvent.id,
+          semi_finalists: semiFinalists,
+          final_ranking: orderedRanking.filter(Boolean), // Remove empty slots
+          top_5: top5,
+          ordered_ranking: orderedRanking,
+          submitted_at: new Date().toISOString(),
+        });
 
       if (error) throw error;
-      
-      queryClient.invalidateQueries({ queryKey: ['officialResults'] });
+
       toast.success("Official results have been saved!");
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving results:', error);
-      toast.error(error.message || "Failed to save official results");
+      toast.error("Failed to save official results");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleClearResults = async () => {
-    try {
-      setIsClearing(true);
-      
-      const { error } = await supabase
-        .from('official_results')
-        .delete()
-        .not('id', 'is', null);
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-end gap-2 mb-4">
+        <Button 
+          variant="destructive"
+          onClick={() => setIsClearDialogOpen(true)}
+          disabled={isClearing}
+        >
+          {isClearing ? "Clearing..." : "Clear Results"}
+        </Button>
+      </div>
 
-      if (error) throw error;
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[200px]">Candidate</TableHead>
+              <TableHead>TOP 15</TableHead>
+              <TableHead>TOP 5</TableHead>
+              <TableHead>4EME D</TableHead>
+              <TableHead>3EME D</TableHead>
+              <TableHead>2EME D</TableHead>
+              <TableHead>1ERE D</TableHead>
+              <TableHead>MISS FRANCE</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedCandidates.map((candidate) => (
+              <CandidateRow
+                key={candidate.id}
+                candidate={candidate}
+                results={rankings}
+                onCheckboxChange={handleRankingChange}
+                disabled={isSaving}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
-      const clearedResults: ResultState = {};
-      candidates.forEach(candidate => {
-        clearedResults[candidate.id] = {
-          top15: false,
-          top5: false,
-          fourth: false,
-          third: false,
-          second: false,
-          first: false,
-          winner: false,
-        };
-      });
-      setResults(clearedResults);
-      
-      queryClient.invalidateQueries({ queryKey: ['officialResults'] });
-      setIsClearDialogOpen(false);
-      toast.success("All results have been cleared");
-    } catch (error) {
-      console.error('Error clearing results:', error);
-      toast.error("Failed to clear results");
-    } finally {
-      setIsClearing(false);
-    }
-  };
-
-  return {
-    results,
-    isSaving,
-    isClearing,
-    isClearDialogOpen,
-    setIsClearDialogOpen,
-    handleCheckboxChange,
-    handleSaveResults,
-    handleClearResults,
-  };
+      <ClearResultsDialog
+        open={isClearDialogOpen}
+        onOpenChange={setIsClearDialogOpen}
+        onConfirm={clearAllRankings}
+        isClearing={isClearing}
+      />
+    </div>
+  );
 }
