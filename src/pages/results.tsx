@@ -10,7 +10,7 @@ export default function Results() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="container py-8 space-y-8"
+      className="container pt-24 pb-8 space-y-8" // Added pt-24 to account for the navigation bar
     >
       <h1 className="text-4xl font-playfair font-bold text-rich-black">Résultats</h1>
       
