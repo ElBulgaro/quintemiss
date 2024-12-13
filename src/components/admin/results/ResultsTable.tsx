@@ -178,10 +178,13 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
 
       if (error) throw error;
       
+      // Invalidate queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['officialResults'] });
+      
       toast.success("Official results have been saved!");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving results:', error);
-      toast.error("Failed to save official results");
+      toast.error(error.message || "Failed to save official results");
     } finally {
       setIsSaving(false);
     }
