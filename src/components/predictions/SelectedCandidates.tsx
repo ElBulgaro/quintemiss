@@ -31,6 +31,16 @@ export const SelectedCandidates = ({
     })
   );
 
+  const getValidationMessage = () => {
+    if (selectedCandidates.length < 5) {
+      return "Complétez votre Top 5 pour valider vos prédictions";
+    }
+    if (selectedCandidates.length > 5) {
+      return "Réduisez votre sélection à 5 candidates pour valider vos prédictions";
+    }
+    return null;
+  };
+
   return (
     <div className="p-6 rounded-lg">
       <div className="flex justify-between items-center mb-4">
@@ -73,9 +83,14 @@ export const SelectedCandidates = ({
           Sélectionnez des candidates dans la liste ci-contre
         </p>
       )}
+      {getValidationMessage() && (
+        <p className="text-center text-rich-black/40 text-sm mt-6 mb-2">
+          {getValidationMessage()}
+        </p>
+      )}
       <Button
         onClick={onSubmit}
-        className="w-full mt-6"
+        className="w-full mt-2"
         disabled={selectedCandidates.length !== 5 || isSubmitting}
       >
         {isSubmitting ? "Enregistrement..." : "Valider mes prédictions"}
