@@ -16,7 +16,7 @@ export function SemiFinalistSelection({
   onToggleSemiFinalist,
 }: SemiFinalistSelectionProps) {
   // Query to check if user is admin
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: isCheckingAdmin } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -34,19 +34,24 @@ export function SemiFinalistSelection({
   });
 
   const handleToggle = async (candidateId: string) => {
-    if (!profile?.is_admin) {
-      toast.error("Only administrators can modify semi-finalists");
-      return;
-    }
+    try {
+      if (!profile?.is_admin) {
+        toast.error("Only administrators can modify semi-finalists");
+        return;
+      }
 
-    if (semiFinalists.includes(candidateId)) {
-      onToggleSemiFinalist(candidateId);
-      await saveResults(semiFinalists.filter(id => id !== candidateId));
-    } else if (semiFinalists.length < 15) {
-      onToggleSemiFinalist(candidateId);
-      await saveResults([...semiFinalists, candidateId]);
-    } else {
-      toast.error("Maximum 15 semi-finalists allowed");
+      if (semiFinalists.includes(candidateId)) {
+        onToggleSemiFinalist(candidateId);
+        await saveResults(semiFinalists.filter(id => id !== candidateId));
+      } else if (semiFinalists.length < 15) {
+        onToggleSemiFinalist(candidateId);
+        await saveResults([...semiFinalists, candidateId]);
+      } else {
+        toast.error("Maximum 15 semi-finalists allowed");
+      }
+    } catch (error: any) {
+      console.error('Error toggling semi-finalist:', error);
+      toast.error(error.message || "Failed to save selection");
     }
   };
 
@@ -56,37 +61,26 @@ export function SemiFinalistSelection({
         throw new Error('Only administrators can save results');
       }
 
-      // Create a new official result
-      const { data: officialResult, error: resultError } = await supabase
+      const { error: resultError } = await supabase
         .from('official_results')
         .insert({
           semi_finalists: updatedSemiFinalists,
-          final_ranking: [], // Add required field
+          final_ranking: [], // Required field
           submitted_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single();
+        });
 
       if (resultError) throw resultError;
-
-      // Create semi-finalist entries
-      const semiFinalistItems = updatedSemiFinalists.map(candidateId => ({
-        official_result_id: officialResult.id,
-        candidate_id: candidateId,
-      }));
-
-      const { error: semiFinalistsError } = await supabase
-        .from('semi_finalists')
-        .insert(semiFinalistItems);
-
-      if (semiFinalistsError) throw semiFinalistsError;
 
       toast.success("Semi-finalist selection saved");
     } catch (error: any) {
       console.error('Error saving results:', error);
-      toast.error(error.message || "Failed to save selection");
+      throw new Error(error.message || "Failed to save selection");
     }
   };
+
+  if (isCheckingAdmin) {
+    return <div>Checking permissions...</div>;
+  }
 
   return (
     <div>
