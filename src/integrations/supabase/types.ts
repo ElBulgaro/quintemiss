@@ -293,6 +293,54 @@ export type Database = {
           },
         ]
       }
+      sheet_candidates: {
+        Row: {
+          age: number | null
+          bio: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          instagram: string | null
+          last_synced_at: string
+          name: string
+          official_photo_url: string | null
+          portrait_url: string | null
+          ranking: string | null
+          region: string
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          instagram?: string | null
+          last_synced_at?: string
+          name: string
+          official_photo_url?: string | null
+          portrait_url?: string | null
+          ranking?: string | null
+          region: string
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          instagram?: string | null
+          last_synced_at?: string
+          name?: string
+          official_photo_url?: string | null
+          portrait_url?: string | null
+          ranking?: string | null
+          region?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

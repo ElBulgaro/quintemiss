@@ -30,7 +30,7 @@ serve(async (req) => {
     if (sheetType === 'candidates') {
       // Update candidates
       const { error: deleteError } = await supabase
-        .from('candidates')
+        .from('sheet_candidates')
         .delete()
         .neq('id', '00000000-0000-0000-0000-000000000000');
 
@@ -45,40 +45,14 @@ serve(async (req) => {
         image_url: candidate["Photo URL (Maillot)"],
         official_photo_url: candidate["Photo URL (Costume)"],
         portrait_url: candidate["URL Portrait TF1"] || null,
+        ranking: candidate["Classement"]?.toLowerCase().replace(/[éè]/g, 'e').replace(/ /g, '_') || 'inconnu',
       }));
 
       const { error: insertError } = await supabase
-        .from('candidates')
+        .from('sheet_candidates')
         .insert(candidatesForDb);
 
       if (insertError) throw insertError;
-    } else if (sheetType === 'results') {
-      // Create new official result
-      const { data: newEvent, error: eventError } = await supabase
-        .from('official_results')
-        .insert({
-          semi_finalists: [],
-          final_ranking: [],
-          submitted_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (eventError) throw eventError;
-
-      // Insert rankings
-      const rankings = data.map((result: any) => ({
-        event_id: newEvent.id,
-        candidate_id: result["Candidate ID"],
-        ranking_type: "FINAL",
-        position: parseInt(result["Position"]),
-      }));
-
-      const { error: rankingsError } = await supabase
-        .from('rankings')
-        .insert(rankings);
-
-      if (rankingsError) throw rankingsError;
     }
 
     return new Response(JSON.stringify({ success: true }), {
