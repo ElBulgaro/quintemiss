@@ -43,29 +43,19 @@ export default function Predictions() {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setIsAuthenticated(false);
-        navigate('/login');
-        return;
-      }
-      setIsAuthenticated(true);
+      setIsAuthenticated(!!session);
     };
     
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        setIsAuthenticated(false);
-        navigate('/login');
-      } else {
-        setIsAuthenticated(true);
-      }
+      setIsAuthenticated(!!session);
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -108,10 +98,6 @@ export default function Predictions() {
     }
     return null;
   };
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-cream pt-24 pb-16">
