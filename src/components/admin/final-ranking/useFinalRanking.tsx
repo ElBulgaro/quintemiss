@@ -38,7 +38,7 @@ export function useFinalRanking() {
 
       if (predictionsError) throw predictionsError;
 
-      // Calculate and save scores for each user
+      // Calculate and save scores for each user using upsert
       const scorePromises = predictions.map(async (prediction) => {
         const { score, perfectMatch } = calculateScore(prediction.predictions, finalRanking);
         
@@ -50,6 +50,9 @@ export function useFinalRanking() {
             perfect_match: perfectMatch,
             official_result_id: officialResultId,
             scored_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id',
+            ignoreDuplicates: false
           });
       });
 
