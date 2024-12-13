@@ -1,10 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Candidate } from "@/data/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ResultsTableProps {
   candidates: Candidate[];
@@ -40,6 +50,45 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+
+  // Load existing results when component mounts
+  useEffect(() => {
+    loadExistingResults();
+  }, []);
+
+  const loadExistingResults = async () => {
+    try {
+      const { data: officialResults } = await supabase
+        .from('official_results')
+        .select('*')
+        .order('submitted_at', { ascending: false })
+        .limit(1);
+
+      if (officialResults?.[0]) {
+        const newResults: ResultState = {};
+        candidates.forEach(candidate => {
+          const isInTop15 = officialResults[0].semi_finalists.includes(candidate.id);
+          const finalRankingPosition = officialResults[0].final_ranking.indexOf(candidate.id);
+          
+          newResults[candidate.id] = {
+            top15: isInTop15,
+            top5: finalRankingPosition !== -1,
+            fourth: finalRankingPosition === 4,
+            third: finalRankingPosition === 3,
+            second: finalRankingPosition === 2,
+            first: finalRankingPosition === 1,
+            winner: finalRankingPosition === 0,
+          };
+        });
+        setResults(newResults);
+      }
+    } catch (error) {
+      console.error('Error loading results:', error);
+      toast.error("Failed to load existing results");
+    }
+  };
 
   const handleCheckboxChange = (candidateId: string, field: keyof ResultState[string]) => {
     setResults(prev => {
@@ -118,7 +167,7 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
         .from('official_results')
         .insert({
           semi_finalists: semiFinalists,
-          final_ranking: finalRanking.filter(Boolean), // Remove any undefined values
+          final_ranking: finalRanking.filter(Boolean),
           submitted_at: new Date().toISOString(),
         });
 
@@ -133,13 +182,57 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
     }
   };
 
+  const handleClearResults = async () => {
+    try {
+      setIsClearing(true);
+      
+      // Delete all results from the database
+      const { error } = await supabase
+        .from('official_results')
+        .delete()
+        .gt('id', '0');
+
+      if (error) throw error;
+
+      // Reset local state
+      const clearedResults: ResultState = {};
+      candidates.forEach(candidate => {
+        clearedResults[candidate.id] = {
+          top15: false,
+          top5: false,
+          fourth: false,
+          third: false,
+          second: false,
+          first: false,
+          winner: false,
+        };
+      });
+      setResults(clearedResults);
+      
+      setIsClearDialogOpen(false);
+      toast.success("All results have been cleared");
+    } catch (error) {
+      console.error('Error clearing results:', error);
+      toast.error("Failed to clear results");
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   const sortedCandidates = [...candidates].sort((a, b) => 
     a.region.localeCompare(b.region)
   );
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end gap-2 mb-4">
+        <Button 
+          variant="destructive"
+          onClick={() => setIsClearDialogOpen(true)}
+          disabled={isClearing}
+        >
+          {isClearing ? "Clearing..." : "Clear Results"}
+        </Button>
         <Button 
           onClick={handleSaveResults} 
           disabled={isSaving}
@@ -225,6 +318,26 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all results?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all official results from the database. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearResults}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isClearing ? "Clearing..." : "Clear Results"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
