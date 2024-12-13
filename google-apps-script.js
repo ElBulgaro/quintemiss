@@ -89,7 +89,6 @@ function manualSync() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     if (!ss) {
       console.error('Could not get active spreadsheet');
-      SpreadsheetApp.getUi().alert('Error: Could not access spreadsheet');
       return;
     }
     
@@ -104,14 +103,13 @@ function manualSync() {
       }
     }
     
-    // Show completion message
+    // Log completion status
     if (syncSuccess) {
-      SpreadsheetApp.getUi().alert('Sync completed successfully!');
+      console.log('Sync completed successfully!');
     } else {
-      SpreadsheetApp.getUi().alert('Sync completed with errors. Check logs for details.');
+      console.error('Sync completed with errors. Check logs for details.');
     }
   } catch (error) {
     console.error('Error in manual sync:', error);
-    SpreadsheetApp.getUi().alert('Error during sync. Check logs for details.');
   }
 }
