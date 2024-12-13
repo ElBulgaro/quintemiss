@@ -4,6 +4,7 @@ import { CandidateCard } from "./CandidateCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "./ui/skeleton";
 import { useImageToggleStore } from "@/store/useImageToggleStore";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CandidatesViewProps {
   selectedCandidates: string[];
@@ -19,6 +20,7 @@ export function CandidatesView({
   singleColumn = false,
 }: CandidatesViewProps) {
   const { showOfficialPhoto } = useImageToggleStore();
+  const isMobile = useIsMobile();
   const { data: candidates, isLoading } = useQuery({
     queryKey: ['candidates'],
     queryFn: async () => {
@@ -40,7 +42,7 @@ export function CandidatesView({
 
   if (isLoading) {
     return (
-      <div className={`container grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
+      <div className={`container grid ${isMobile ? (singleColumn ? 'grid-cols-1' : 'grid-cols-2') : (singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4')} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
         {[...Array(8)].map((_, index) => (
           <div key={index} className="space-y-3">
             <Skeleton className="h-[400px] w-full" />
@@ -54,7 +56,7 @@ export function CandidatesView({
 
   return (
     <motion.div 
-      className={`container grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}
+      className={`container grid ${isMobile ? (singleColumn ? 'grid-cols-1' : 'grid-cols-2') : (singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4')} gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
