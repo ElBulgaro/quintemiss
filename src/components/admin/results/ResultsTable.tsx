@@ -1,25 +1,24 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Candidate } from "@/data/types";
 import { CandidateRow } from "./CandidateRow";
 import { ClearResultsDialog } from "./ClearResultsDialog";
-import { useResultsTable } from "./useResultsTable";
+import { useState } from "react";
+import { useRankings } from "@/hooks/use-rankings";
 
 interface ResultsTableProps {
   candidates: Candidate[];
 }
 
 export function ResultsTable({ candidates }: ResultsTableProps) {
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
   const {
-    results,
+    rankings,
     isSaving,
     isClearing,
-    isClearDialogOpen,
-    setIsClearDialogOpen,
-    handleCheckboxChange,
-    handleSaveResults,
-    handleClearResults,
-  } = useResultsTable(candidates);
+    handleRankingChange,
+    clearAllRankings,
+  } = useRankings(candidates);
 
   const sortedCandidates = [...candidates].sort((a, b) => 
     a.region.localeCompare(b.region)
@@ -34,12 +33,6 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
           disabled={isClearing}
         >
           {isClearing ? "Clearing..." : "Clear Results"}
-        </Button>
-        <Button 
-          onClick={handleSaveResults} 
-          disabled={isSaving}
-        >
-          {isSaving ? "Saving..." : "Save Official Results"}
         </Button>
       </div>
 
@@ -62,8 +55,9 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
               <CandidateRow
                 key={candidate.id}
                 candidate={candidate}
-                results={results}
-                onCheckboxChange={handleCheckboxChange}
+                results={rankings}
+                onCheckboxChange={handleRankingChange}
+                disabled={isSaving}
               />
             ))}
           </TableBody>
@@ -73,7 +67,7 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
       <ClearResultsDialog
         open={isClearDialogOpen}
         onOpenChange={setIsClearDialogOpen}
-        onConfirm={handleClearResults}
+        onConfirm={clearAllRankings}
         isClearing={isClearing}
       />
     </div>

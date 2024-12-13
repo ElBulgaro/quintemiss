@@ -1,21 +1,20 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Candidate } from "@/data/types";
+import type { RankingState } from "@/hooks/use-rankings";
 
 interface CandidateRowProps {
   candidate: Candidate;
-  results: Record<string, {
-    top15: boolean;
-    top5: boolean;
-    fourth: boolean;
-    third: boolean;
-    second: boolean;
-    first: boolean;
-    winner: boolean;
-  }>;
+  results: RankingState;
   onCheckboxChange: (candidateId: string, field: string) => void;
+  disabled?: boolean;
 }
 
-export function CandidateRow({ candidate, results, onCheckboxChange }: CandidateRowProps) {
+export function CandidateRow({ 
+  candidate, 
+  results, 
+  onCheckboxChange,
+  disabled 
+}: CandidateRowProps) {
   return (
     <tr key={candidate.id}>
       <td className="font-medium">
@@ -35,42 +34,49 @@ export function CandidateRow({ candidate, results, onCheckboxChange }: Candidate
         <Checkbox
           checked={results[candidate.id]?.top15}
           onCheckedChange={() => onCheckboxChange(candidate.id, 'top15')}
+          disabled={disabled}
         />
       </td>
       <td>
         <Checkbox
           checked={results[candidate.id]?.top5}
           onCheckedChange={() => onCheckboxChange(candidate.id, 'top5')}
+          disabled={disabled}
         />
       </td>
       <td>
         <Checkbox
           checked={results[candidate.id]?.fourth}
           onCheckedChange={() => onCheckboxChange(candidate.id, 'fourth')}
+          disabled={disabled}
         />
       </td>
       <td>
         <Checkbox
           checked={results[candidate.id]?.third}
           onCheckedChange={() => onCheckboxChange(candidate.id, 'third')}
+          disabled={disabled}
         />
       </td>
       <td>
         <Checkbox
           checked={results[candidate.id]?.second}
           onCheckedChange={() => onCheckboxChange(candidate.id, 'second')}
+          disabled={disabled}
         />
       </td>
       <td>
         <Checkbox
           checked={results[candidate.id]?.first}
           onCheckedChange={() => onCheckboxChange(candidate.id, 'first')}
+          disabled={disabled}
         />
       </td>
       <td>
         <Checkbox
           checked={results[candidate.id]?.winner}
           onCheckedChange={() => onCheckboxChange(candidate.id, 'winner')}
+          disabled={disabled}
         />
       </td>
     </tr>
