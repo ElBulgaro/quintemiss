@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { CandidateList } from "./CandidateList";
+import { SheetCandidatesList } from "./SheetCandidatesList";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Candidate } from "@/data/types";
@@ -15,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CandidatesManagementProps {
   candidates: Candidate[];
@@ -38,7 +40,7 @@ export function CandidatesManagement({
       const { error } = await supabase
         .from('candidates')
         .delete()
-        .gt('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows by comparing with minimum UUID
+        .gt('id', '00000000-0000-0000-0000-000000000000');
 
       if (error) throw error;
       
@@ -54,28 +56,43 @@ export function CandidatesManagement({
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-playfair font-bold">Manage Candidates</h1>
-        <div className="flex gap-2">
-          <Button onClick={onAdd}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Candidate
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={() => setIsDeleteAllDialogOpen(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete All
-          </Button>
-        </div>
-      </div>
+      <Tabs defaultValue="candidates" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="candidates">Candidates</TabsTrigger>
+          <TabsTrigger value="sheet">Sheet Candidates</TabsTrigger>
+        </TabsList>
 
-      <CandidateList
-        candidates={candidates}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+        <TabsContent value="candidates">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-3xl font-playfair font-bold">Manage Candidates</h2>
+              <div className="flex gap-2">
+                <Button onClick={onAdd}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Candidate
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => setIsDeleteAllDialogOpen(true)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete All
+                </Button>
+              </div>
+            </div>
+
+            <CandidateList
+              candidates={candidates}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="sheet">
+          <SheetCandidatesList />
+        </TabsContent>
+      </Tabs>
 
       <AlertDialog open={isDeleteAllDialogOpen} onOpenChange={setIsDeleteAllDialogOpen}>
         <AlertDialogContent>
