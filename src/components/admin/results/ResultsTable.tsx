@@ -167,14 +167,28 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
         }
       });
 
-      // Save to database
+      // First, check if there's an existing record
+      const { data: existingResults } = await supabase
+        .from('official_results')
+        .select('id')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      let upsertData = {
+        semi_finalists: semiFinalists,
+        final_ranking: finalRanking.filter(Boolean),
+        submitted_at: new Date().toISOString(),
+      };
+
+      // If there's an existing record, include its ID for update
+      if (existingResults?.[0]?.id) {
+        upsertData = { ...upsertData, id: existingResults[0].id };
+      }
+
+      // Use upsert to handle both insert and update cases
       const { error } = await supabase
         .from('official_results')
-        .insert({
-          semi_finalists: semiFinalists,
-          final_ranking: finalRanking.filter(Boolean),
-          submitted_at: new Date().toISOString(),
-        });
+        .upsert(upsertData);
 
       if (error) throw error;
       
