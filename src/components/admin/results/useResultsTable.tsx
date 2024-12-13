@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAdminRankings } from "@/hooks/admin/use-admin-rankings";
 import type { Candidate } from "@/data/types";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { CandidateRow } from "./CandidateRow";
+import { ClearResultsDialog } from "./ClearResultsDialog";
 
 interface ResultsTableProps {
   candidates: Candidate[];
