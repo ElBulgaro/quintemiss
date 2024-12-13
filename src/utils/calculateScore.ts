@@ -35,7 +35,7 @@ export const calculateScore = (
 
   // Bonus points for correctly predicting the winner (first position)
   if (predictions[0] === officialRanking[0]) {
-    score += 100;
+    score += 50; // Changed from 100 to 50
   }
 
   // Perfect match bonus (all 5 positions correct)
