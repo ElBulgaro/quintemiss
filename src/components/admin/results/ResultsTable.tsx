@@ -4,7 +4,7 @@ import type { Candidate } from "@/data/types";
 import { CandidateRow } from "./CandidateRow";
 import { ClearResultsDialog } from "./ClearResultsDialog";
 import { useState } from "react";
-import { useAdminRankings } from "@/hooks/use-admin-rankings";
+import { useAdminRankings } from "@/hooks/admin/use-admin-rankings";
 
 interface ResultsTableProps {
   candidates: Candidate[];
