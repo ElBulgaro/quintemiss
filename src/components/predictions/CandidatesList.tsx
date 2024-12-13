@@ -1,24 +1,19 @@
-import { ViewToggle } from "@/components/ViewToggle";
 import { CandidatesView } from "@/components/CandidatesView";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Search, Shirt } from "lucide-react";
+import { Search } from "lucide-react";
 import { useImageToggleStore } from "@/store/useImageToggleStore";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { ColumnToggle } from "@/components/ColumnToggle";
+import { useState } from "react";
 
 interface CandidatesListProps {
-  viewMode: 'grid-2' | 'grid-3' | 'list';
   selectedCandidates: string[];
-  onViewChange: (mode: 'grid-2' | 'grid-3' | 'list') => void;
   onCandidateSelect: (id: string) => void;
 }
 
 export const CandidatesList = ({
-  viewMode,
   selectedCandidates,
-  onViewChange,
   onCandidateSelect,
 }: CandidatesListProps) => {
   const isMobile = useIsMobile();
@@ -100,10 +95,10 @@ export const CandidatesList = ({
 
       <div className="py-6">
         <CandidatesView
-          viewMode={viewMode}
           selectedCandidates={selectedCandidates}
           onCandidateSelect={onCandidateSelect}
           searchQuery={searchQuery}
+          singleColumn={singleColumn}
         />
       </div>
     </div>
