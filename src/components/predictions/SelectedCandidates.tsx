@@ -2,7 +2,6 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { SortableCandidate } from "@/components/SortableCandidate";
-import type { Candidate } from "@/data/types";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,7 +44,7 @@ export const SelectedCandidates = ({
         throw error;
       }
       
-      return data as Candidate[];
+      return data;
     },
   });
 

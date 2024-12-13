@@ -24,8 +24,22 @@ export const usePredictions = () => {
 
         // If predictions exist, use them
         if (predictions && predictions.length > 0) {
-          setSelectedCandidates(predictions[0].predictions || []);
-          localStorage.setItem('predictions', JSON.stringify(predictions[0].predictions));
+          // Verify that all candidates still exist in sheet_candidates
+          const { data: validCandidates, error: validationError } = await supabase
+            .from('sheet_candidates')
+            .select('id')
+            .in('id', predictions[0].predictions);
+
+          if (validationError) throw validationError;
+
+          // Only use IDs that still exist in sheet_candidates
+          const validIds = validCandidates.map(c => c.id);
+          const filteredPredictions = predictions[0].predictions.filter(id => 
+            validIds.includes(id)
+          );
+
+          setSelectedCandidates(filteredPredictions);
+          localStorage.setItem('predictions', JSON.stringify(filteredPredictions));
         }
       } catch (error) {
         console.error('Error fetching predictions:', error);
@@ -58,6 +72,19 @@ export const usePredictions = () => {
       
       if (!user) {
         toast.error("Une erreur est survenue, veuillez vous reconnecter");
+        return false;
+      }
+
+      // Verify that all selected candidates exist in sheet_candidates
+      const { data: validCandidates, error: validationError } = await supabase
+        .from('sheet_candidates')
+        .select('id')
+        .in('id', selectedCandidates);
+
+      if (validationError) throw validationError;
+
+      if (validCandidates.length !== selectedCandidates.length) {
+        toast.error("Certaines candidates sélectionnées n'existent plus");
         return false;
       }
 

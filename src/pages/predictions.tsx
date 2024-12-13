@@ -11,7 +11,6 @@ import { PredictionsHeader } from "@/components/predictions/PredictionsHeader";
 import { HelpSection } from "@/components/predictions/HelpSection";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import type { Candidate } from "@/data/types";
 
 export default function Predictions() {
   const navigate = useNavigate();
@@ -26,19 +25,6 @@ export default function Predictions() {
     clearPredictions, 
     savePredictions 
   } = usePredictions();
-  
-  const { data: candidates = [] } = useQuery({
-    queryKey: ['candidates'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('candidates')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data as Candidate[];
-    },
-  });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -105,7 +91,6 @@ export default function Predictions() {
                 onSubmit={handleSubmit}
                 isSubmitting={isSubmitting}
                 onClearData={clearPredictions}
-                candidates={candidates}
               />
             </div>
 
