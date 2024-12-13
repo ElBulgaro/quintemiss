@@ -138,7 +138,7 @@ export type Database = {
             foreignKeyName: "prediction_items_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
-            referencedRelation: "candidates"
+            referencedRelation: "sheet_candidates"
             referencedColumns: ["id"]
           },
           {
