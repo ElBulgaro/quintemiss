@@ -122,24 +122,30 @@ export type Database = {
           created_at: string
           final_ranking: string[]
           id: string
+          ordered_ranking: string[] | null
           semi_finalists: string[]
           submitted_at: string
+          top_5: string[] | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           final_ranking: string[]
           id?: string
+          ordered_ranking?: string[] | null
           semi_finalists: string[]
           submitted_at?: string
+          top_5?: string[] | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           final_ranking?: string[]
           id?: string
+          ordered_ranking?: string[] | null
           semi_finalists?: string[]
           submitted_at?: string
+          top_5?: string[] | null
           updated_at?: string
         }
         Relationships: []
