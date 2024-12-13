@@ -21,7 +21,14 @@ function getSheetData(sheet) {
     const [headers, ...rows] = values;
     return rows.map(row => {
       const obj = {};
-      headers.forEach((header, i) => obj[header] = row[i]);
+      headers.forEach((header, i) => {
+        // Convert empty strings to null
+        obj[header] = row[i] === '' ? null : row[i];
+        // Convert age to number or null
+        if (header === 'Age') {
+          obj[header] = row[i] ? Number(row[i]) : null;
+        }
+      });
       return obj;
     });
   } catch (error) {
