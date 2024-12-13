@@ -19,6 +19,7 @@ function getSheetData(sheet) {
     headers.forEach((header, i) => {
       const value = row[i];
       
+      // Handle each column type appropriately
       switch(header) {
         case 'Age':
           candidate[header] = value ? Number(value) : null;
@@ -26,10 +27,8 @@ function getSheetData(sheet) {
         case 'Classement':
           candidate[header] = formatRanking(value);
           break;
-        case 'ID':
-          candidate[header] = value || null;
-          break;
         default:
+          // For all other fields, convert empty strings to null
           candidate[header] = value === '' ? null : value;
       }
     });
@@ -50,12 +49,18 @@ function sendToSupabase(sheetType, data) {
       'Authorization': `Bearer ${ANON_KEY}`,
       'apikey': ANON_KEY
     },
-    payload: JSON.stringify({ sheetType, data, secret: WEBHOOK_SECRET }),
+    payload: JSON.stringify({ 
+      sheetType, 
+      data,
+      secret: WEBHOOK_SECRET 
+    }),
     muteHttpExceptions: true
   });
 
   const success = response.getResponseCode() >= 200 && response.getResponseCode() < 300;
-  console.log(success ? 'Sync successful' : `Sync failed: ${response.getContentText()}`);
+  if (!success) {
+    console.error('Sync failed:', response.getContentText());
+  }
   return success;
 }
 

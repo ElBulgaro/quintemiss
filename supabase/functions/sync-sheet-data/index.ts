@@ -29,45 +29,55 @@ serve(async (req) => {
     console.log(`Processing ${data.length} candidates`);
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const candidates = data.map(row => ({
-      name: row["Nom Complet"],
-      region: row["Région"],
-      bio: row["Bio"],
-      age: row["Age"],
-      instagram: row["Instagram"],
-      image_url: row["Photo URL (Maillot)"],
-      official_photo_url: row["Photo URL (Costume)"],
-      portrait_url: row["URL Portrait TF1"],
-      ranking: row["Classement"]?.toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_+|_+$/g, '') || 'inconnu',
-      last_synced_at: new Date().toISOString(),
-    }));
+    for (const row of data) {
+      try {
+        // First try to find existing candidate by name and region
+        const { data: existing, error: searchError } = await supabase
+          .from('sheet_candidates')
+          .select('id')
+          .eq('name', row["Nom Complet"])
+          .eq('region', row["Région"])
+          .maybeSingle();
 
-    for (const candidate of candidates) {
-      const { data: existing } = await supabase
-        .from('sheet_candidates')
-        .select('id')
-        .eq('name', candidate.name)
-        .eq('region', candidate.region)
-        .maybeSingle();
+        if (searchError) {
+          console.error(`Error searching for ${row["Nom Complet"]}:`, searchError);
+          continue;
+        }
 
-      const { error } = existing
-        ? await supabase
-            .from('sheet_candidates')
-            .update(candidate)
-            .eq('id', existing.id)
-        : await supabase
-            .from('sheet_candidates')
-            .insert([candidate]);
+        const candidate = {
+          name: row["Nom Complet"],
+          region: row["Région"],
+          bio: row["Bio"],
+          age: row["Age"],
+          instagram: row["Instagram"],
+          image_url: row["Photo URL (Maillot)"],
+          official_photo_url: row["Photo URL (Costume)"],
+          portrait_url: row["URL Portrait TF1"],
+          ranking: row["Classement"]?.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '') || 'inconnu',
+          last_synced_at: new Date().toISOString(),
+        };
 
-      if (error) {
-        console.error(`Error processing ${candidate.name}:`, error);
-        throw error;
+        const { error: upsertError } = existing
+          ? await supabase
+              .from('sheet_candidates')
+              .update(candidate)
+              .eq('id', existing.id)
+          : await supabase
+              .from('sheet_candidates')
+              .insert([candidate]);
+
+        if (upsertError) {
+          console.error(`Error processing ${candidate.name}:`, upsertError);
+          throw upsertError;
+        }
+        
+        console.log(`${existing ? 'Updated' : 'Inserted'} ${candidate.name}`);
+      } catch (error) {
+        console.error(`Error processing ${row["Nom Complet"]}:`, error);
       }
-      
-      console.log(`${existing ? 'Updated' : 'Inserted'} ${candidate.name}`);
     }
 
     return new Response(JSON.stringify({ success: true }), {
