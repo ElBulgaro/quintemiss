@@ -31,25 +31,23 @@ export function OfficialResults() {
         .order('region');
       
       if (error) throw error;
-      return data || [];
+
+      // Sort candidates based on their ranking
+      return (data || []).sort((a, b) => {
+        const rankOrder = {
+          'miss_france': 1,
+          '1ere_dauphine': 2,
+          '2eme_dauphine': 3,
+          '3eme_dauphine': 4,
+          '4eme_dauphine': 5,
+          'top5': 6,
+          'top15': 7,
+          'inconnu': 8
+        };
+        return (rankOrder[a.ranking || 'inconnu'] || 8) - (rankOrder[b.ranking || 'inconnu'] || 8);
+      });
     },
   });
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
-          <Trophy className="h-6 w-6 text-gold" />
-          Résultats Officiels Miss France 2025
-        </h2>
-        <Card className="p-6">
-          <p className="text-center text-rich-black/60">
-            Chargement des résultats...
-          </p>
-        </Card>
-      </div>
-    );
-  }
 
   const getPointsForCandidate = (candidateId: string, ranking: string) => {
     if (!userPredictions?.predictions) return 0;
@@ -87,6 +85,36 @@ export function OfficialResults() {
     return points;
   };
 
+  const getRankingDisplay = (ranking: string) => {
+    const rankingMap = {
+      'miss_france': 'Miss France 2025',
+      '1ere_dauphine': '1ère Dauphine',
+      '2eme_dauphine': '2ème Dauphine',
+      '3eme_dauphine': '3ème Dauphine',
+      '4eme_dauphine': '4ème Dauphine',
+      'top5': 'Top 5',
+      'top15': 'Top 15',
+      'inconnu': 'En attente'
+    };
+    return rankingMap[ranking] || 'En attente';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
+          <Trophy className="h-6 w-6 text-gold" />
+          Résultats Officiels Miss France 2025
+        </h2>
+        <Card className="p-6">
+          <p className="text-center text-rich-black/60">
+            Chargement des résultats...
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
@@ -95,9 +123,10 @@ export function OfficialResults() {
       </h2>
 
       <div className="space-y-4">
-        {candidates.map((candidate) => {
+        {candidates?.map((candidate) => {
           const points = getPointsForCandidate(candidate.id, candidate.ranking || 'inconnu');
           const isSelected = userPredictions?.predictions?.includes(candidate.id);
+          const ranking = getRankingDisplay(candidate.ranking || 'inconnu');
           
           return (
             <Card 
@@ -117,7 +146,15 @@ export function OfficialResults() {
                   </div>
                   <div>
                     <h3 className="font-semibold">{candidate.name}</h3>
-                    <p className="text-sm text-muted-foreground">{candidate.region}</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                      <p className="text-sm text-muted-foreground">{candidate.region}</p>
+                      {candidate.ranking && candidate.ranking !== 'inconnu' && (
+                        <>
+                          <span className="hidden sm:inline text-muted-foreground">•</span>
+                          <p className="text-sm font-medium text-gold">{ranking}</p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {isSelected && points > 0 && (
