@@ -13,8 +13,8 @@ export function NavigationLinks({ isAdmin }: NavigationLinksProps) {
       <Link to="/predictions" className="text-rich-black/80 hover:text-rich-black transition-colors">
         Predictions
       </Link>
-      <Link to="/leaderboard" className="text-rich-black/80 hover:text-rich-black transition-colors">
-        Leaderboard
+      <Link to="/results" className="text-rich-black/80 hover:text-rich-black transition-colors">
+        Résultats
       </Link>
       {isAdmin && (
         <Link to="/admin/candidates" className="text-rich-black/80 hover:text-rich-black transition-colors">
