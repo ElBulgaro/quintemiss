@@ -249,6 +249,51 @@ export type Database = {
         }
         Relationships: []
       }
+      rankings: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          event_id: string
+          id: string
+          position: number | null
+          ranking_type: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          event_id: string
+          id?: string
+          position?: number | null
+          ranking_type: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          position?: number | null
+          ranking_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rankings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rankings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "official_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scores: {
         Row: {
           created_at: string
