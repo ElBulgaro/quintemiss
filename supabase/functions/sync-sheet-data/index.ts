@@ -38,88 +38,101 @@ serve(async (req) => {
         image_url: candidate["Photo URL (Maillot)"],
         official_photo_url: candidate["Photo URL (Costume)"],
         portrait_url: candidate["URL Portrait TF1"] || null,
-        ranking: candidate["Classement"]?.toLowerCase().replace(/[éè]/g, 'e').replace(/ /g, '_') || 'inconnu',
+        ranking: candidate["Classement"] || 'inconnu',
         last_synced_at: new Date().toISOString(),
       }));
 
-      // Get all prediction items that reference sheet_candidates
-      const { data: predictionItems } = await supabase
-        .from('prediction_items')
-        .select('candidate_id');
-
-      // Get unique candidate IDs from prediction items
-      const referencedCandidateIds = new Set(predictionItems?.map(item => item.candidate_id) || []);
+      console.log('Mapped candidates data:', candidatesForDb);
 
       // Process each candidate
       for (const candidate of candidatesForDb) {
-        // First try to find an existing candidate by name and region
-        const { data: existingCandidates, error: findError } = await supabase
-          .from('sheet_candidates')
-          .select('id, name, region')
-          .eq('name', candidate.name)
-          .eq('region', candidate.region);
-
-        if (findError) {
-          console.error('Error finding existing candidate:', findError);
-          throw findError;
-        }
-
-        if (existingCandidates && existingCandidates.length > 0) {
-          // Update existing candidate
-          const { error: updateError } = await supabase
+        try {
+          // First try to find an existing candidate by name and region
+          const { data: existingCandidates, error: findError } = await supabase
             .from('sheet_candidates')
-            .update(candidate)
-            .eq('id', existingCandidates[0].id);
+            .select('id, name, region')
+            .eq('name', candidate.name)
+            .eq('region', candidate.region)
+            .single();
 
-          if (updateError) {
-            console.error('Error updating candidate:', updateError);
-            throw updateError;
+          if (findError && findError.code !== 'PGRST116') { // Ignore "no rows returned" error
+            console.error('Error finding existing candidate:', findError);
+            throw findError;
           }
-          console.log(`Updated candidate: ${candidate.name} from ${candidate.region}`);
-        } else {
-          // Insert new candidate
-          const { error: insertError } = await supabase
-            .from('sheet_candidates')
-            .insert([candidate]);
 
-          if (insertError) {
-            console.error('Error inserting new candidate:', insertError);
-            throw insertError;
+          if (existingCandidates) {
+            // Update existing candidate
+            const { error: updateError } = await supabase
+              .from('sheet_candidates')
+              .update(candidate)
+              .eq('id', existingCandidates.id);
+
+            if (updateError) {
+              console.error('Error updating candidate:', updateError);
+              throw updateError;
+            }
+            console.log(`Updated candidate: ${candidate.name} from ${candidate.region}`);
+          } else {
+            // Insert new candidate
+            const { error: insertError } = await supabase
+              .from('sheet_candidates')
+              .insert([candidate]);
+
+            if (insertError) {
+              console.error('Error inserting new candidate:', insertError);
+              throw insertError;
+            }
+            console.log(`Inserted new candidate: ${candidate.name} from ${candidate.region}`);
           }
-          console.log(`Inserted new candidate: ${candidate.name} from ${candidate.region}`);
+        } catch (error) {
+          console.error(`Error processing candidate ${candidate.name}:`, error);
+          throw error;
         }
       }
 
-      // Get all current candidates after updates
-      const { data: currentCandidates, error: getCurrentError } = await supabase
-        .from('sheet_candidates')
-        .select('id, name, region');
-
-      if (getCurrentError) {
-        console.error('Error getting current candidates:', getCurrentError);
-        throw getCurrentError;
-      }
-
-      // Find candidates to delete (not in new data and not referenced)
-      const newCandidateKeys = new Set(candidatesForDb.map(c => `${c.name}-${c.region}`));
-      const candidatesToDelete = currentCandidates
-        ?.filter(c => {
-          const key = `${c.name}-${c.region}`;
-          return !newCandidateKeys.has(key) && !referencedCandidateIds.has(c.id);
-        })
-        .map(c => c.id) || [];
-
-      if (candidatesToDelete.length > 0) {
-        const { error: deleteError } = await supabase
+      // Clean up old candidates
+      try {
+        const { data: currentCandidates, error: getCurrentError } = await supabase
           .from('sheet_candidates')
-          .delete()
-          .in('id', candidatesToDelete);
+          .select('id, name, region');
 
-        if (deleteError) {
-          console.error('Error deleting outdated candidates:', deleteError);
-          throw deleteError;
+        if (getCurrentError) {
+          console.error('Error getting current candidates:', getCurrentError);
+          throw getCurrentError;
         }
-        console.log(`Deleted ${candidatesToDelete.length} outdated candidates`);
+
+        // Get all prediction items that reference sheet_candidates
+        const { data: predictionItems } = await supabase
+          .from('prediction_items')
+          .select('candidate_id');
+
+        // Get unique candidate IDs from prediction items
+        const referencedCandidateIds = new Set(predictionItems?.map(item => item.candidate_id) || []);
+
+        // Find candidates to delete (not in new data and not referenced)
+        const newCandidateKeys = new Set(candidatesForDb.map(c => `${c.name}-${c.region}`));
+        const candidatesToDelete = currentCandidates
+          ?.filter(c => {
+            const key = `${c.name}-${c.region}`;
+            return !newCandidateKeys.has(key) && !referencedCandidateIds.has(c.id);
+          })
+          .map(c => c.id) || [];
+
+        if (candidatesToDelete.length > 0) {
+          const { error: deleteError } = await supabase
+            .from('sheet_candidates')
+            .delete()
+            .in('id', candidatesToDelete);
+
+          if (deleteError) {
+            console.error('Error deleting outdated candidates:', deleteError);
+            throw deleteError;
+          }
+          console.log(`Deleted ${candidatesToDelete.length} outdated candidates`);
+        }
+      } catch (error) {
+        console.error('Error cleaning up old candidates:', error);
+        throw error;
       }
 
       console.log('Successfully synced all candidates');

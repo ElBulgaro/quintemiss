@@ -24,9 +24,19 @@ function getSheetData(sheet) {
       headers.forEach((header, i) => {
         // Convert empty strings to null
         obj[header] = row[i] === '' ? null : row[i];
+        
         // Convert age to number or null
         if (header === 'Age') {
           obj[header] = row[i] ? Number(row[i]) : null;
+        }
+        
+        // Format ranking value
+        if (header === 'Classement') {
+          obj[header] = row[i] ? row[i].toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
+            .replace(/[^a-z0-9]+/g, '_') // Replace spaces and special chars with underscore
+            .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
+            : 'inconnu';
         }
       });
       return obj;
