@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import type { Candidate } from "@/data/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useSemiFinalistRankings } from "@/hooks/admin/use-semi-finalist-rankings";
 
 interface SemiFinalistSelectionProps {
   candidates: Candidate[];
@@ -15,6 +16,8 @@ export function SemiFinalistSelection({
   semiFinalists,
   onToggleSemiFinalist,
 }: SemiFinalistSelectionProps) {
+  const { isSaving, handleToggleSemiFinalist } = useSemiFinalistRankings();
+
   // Query to check if user is admin
   const { data: profile, isLoading: isCheckingAdmin } = useQuery({
     queryKey: ['profile'],
@@ -34,47 +37,16 @@ export function SemiFinalistSelection({
   });
 
   const handleToggle = async (candidateId: string) => {
-    try {
-      if (!profile?.is_admin) {
-        toast.error("Only administrators can modify semi-finalists");
-        return;
-      }
+    if (isSaving) return;
 
-      if (semiFinalists.includes(candidateId)) {
-        onToggleSemiFinalist(candidateId);
-        await saveResults(semiFinalists.filter(id => id !== candidateId));
-      } else if (semiFinalists.length < 15) {
-        onToggleSemiFinalist(candidateId);
-        await saveResults([...semiFinalists, candidateId]);
-      } else {
-        toast.error("Maximum 15 semi-finalists allowed");
-      }
-    } catch (error: any) {
-      console.error('Error toggling semi-finalist:', error);
-      toast.error(error.message || "Failed to save selection");
-    }
-  };
+    const updatedSemiFinalists = await handleToggleSemiFinalist(
+      candidateId,
+      semiFinalists,
+      !!profile?.is_admin
+    );
 
-  const saveResults = async (updatedSemiFinalists: string[]) => {
-    try {
-      if (!profile?.is_admin) {
-        throw new Error('Only administrators can save results');
-      }
-
-      const { error: resultError } = await supabase
-        .from('official_results')
-        .insert({
-          semi_finalists: updatedSemiFinalists,
-          final_ranking: [], // Required field
-          submitted_at: new Date().toISOString(),
-        });
-
-      if (resultError) throw resultError;
-
-      toast.success("Semi-finalist selection saved");
-    } catch (error: any) {
-      console.error('Error saving results:', error);
-      throw new Error(error.message || "Failed to save selection");
+    if (updatedSemiFinalists) {
+      onToggleSemiFinalist(candidateId);
     }
   };
 
