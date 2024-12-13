@@ -71,10 +71,8 @@ export default function Predictions() {
   const handleCandidateSelect = (candidateId: string) => {
     if (selectedCandidates.includes(candidateId)) {
       updatePredictions(selectedCandidates.filter((id) => id !== candidateId));
-    } else if (selectedCandidates.length < 5) {
-      updatePredictions([...selectedCandidates, candidateId]);
     } else {
-      toast.error("Vous ne pouvez sélectionner que 5 candidates");
+      updatePredictions([...selectedCandidates, candidateId]);
     }
   };
 
@@ -83,6 +81,16 @@ export default function Predictions() {
     if (success) {
       setTimeout(() => navigate("/leaderboard"), 2000);
     }
+  };
+
+  const getSelectionMessage = () => {
+    if (selectedCandidates.length < 5) {
+      return "Complétez votre Top 5 pour valider vos prédictions";
+    }
+    if (selectedCandidates.length > 5) {
+      return "Réduisez votre sélection à 5 candidates pour valider vos prédictions";
+    }
+    return null;
   };
 
   return (
@@ -105,17 +113,22 @@ export default function Predictions() {
               />
             </div>
 
+            {/* Selection message */}
+            {getSelectionMessage() && (
+              <p className="text-center text-rich-black/60 mb-4">
+                {getSelectionMessage()}
+              </p>
+            )}
+
             {/* Candidate selection button/drawer */}
             <Sheet>
               <SheetTrigger asChild>
                 <Button 
                   size="lg" 
                   className="w-full mb-4"
-                  disabled={selectedCandidates.length >= 5}
+                  disabled={selectedCandidates.length === 5}
                 >
-                  {selectedCandidates.length >= 5 
-                    ? "5 candidates sélectionnées ✨" 
-                    : "Sélectionner des candidates"}
+                  Sélectionner des candidates ({selectedCandidates.length}/5)
                 </Button>
               </SheetTrigger>
               <SheetContent side="bottom" className="h-[80vh] sm:h-[90vh]">
