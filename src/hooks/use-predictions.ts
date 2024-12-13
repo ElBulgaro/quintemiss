@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { calculateScore } from '@/utils/calculateScore';
 
 export const usePredictions = () => {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
@@ -12,7 +13,6 @@ export const usePredictions = () => {
       if (!session) return;
 
       try {
-        // First get the user's most recent prediction
         const { data: predictions, error: predictionsError } = await supabase
           .from('predictions')
           .select('id, predictions')
@@ -22,9 +22,7 @@ export const usePredictions = () => {
 
         if (predictionsError) throw predictionsError;
 
-        // If predictions exist, use them
         if (predictions && predictions.length > 0) {
-          // Verify that all candidates still exist in sheet_candidates
           const { data: validCandidates, error: validationError } = await supabase
             .from('sheet_candidates')
             .select('id')
@@ -32,7 +30,6 @@ export const usePredictions = () => {
 
           if (validationError) throw validationError;
 
-          // Only use IDs that still exist in sheet_candidates
           const validIds = validCandidates.map(c => c.id);
           const filteredPredictions = predictions[0].predictions.filter(id => 
             validIds.includes(id)
@@ -60,6 +57,52 @@ export const usePredictions = () => {
     setSelectedCandidates([]);
   };
 
+  const calculateAndUpdateScore = async (userId: string, predictions: string[]) => {
+    try {
+      // Get the latest rankings
+      const { data: candidates, error: rankingsError } = await supabase
+        .from('sheet_candidates')
+        .select('id, ranking')
+        .not('ranking', 'is', null);
+
+      if (rankingsError) throw rankingsError;
+
+      // Get semi-finalists
+      const semiFinalists = candidates
+        .filter(c => ['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5', 'top15']
+        .includes(c.ranking))
+        .map(c => c.id);
+
+      // Get final ranking
+      const finalRanking = ['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine']
+        .map(rank => {
+          const candidate = candidates.find(c => c.ranking === rank);
+          return candidate ? candidate.id : null;
+        })
+        .filter((id): id is string => id !== null);
+
+      // Calculate score
+      const { score, perfectMatch } = calculateScore(predictions, finalRanking, semiFinalists);
+
+      // Update score in database
+      const { error: scoreError } = await supabase
+        .from('scores')
+        .upsert({
+          user_id: userId,
+          score,
+          perfect_match: perfectMatch,
+          scored_at: new Date().toISOString(),
+        });
+
+      if (scoreError) throw scoreError;
+
+      console.log('Score updated successfully:', { score, perfectMatch });
+    } catch (error) {
+      console.error('Error calculating/updating score:', error);
+      throw error;
+    }
+  };
+
   const savePredictions = async () => {
     if (selectedCandidates.length !== 5) {
       toast.error("Veuillez sélectionner exactement 5 candidates");
@@ -75,7 +118,7 @@ export const usePredictions = () => {
         return false;
       }
 
-      // Verify that all selected candidates exist in sheet_candidates
+      // Verify candidates exist
       const { data: validCandidates, error: validationError } = await supabase
         .from('sheet_candidates')
         .select('id')
@@ -88,7 +131,7 @@ export const usePredictions = () => {
         return false;
       }
 
-      // Create a new prediction entry
+      // Save prediction
       const { data: prediction, error: predictionError } = await supabase
         .from('predictions')
         .insert({
@@ -101,7 +144,7 @@ export const usePredictions = () => {
 
       if (predictionError) throw predictionError;
 
-      // Create prediction items for each candidate
+      // Create prediction items
       const predictionItems = selectedCandidates.map((candidateId, index) => ({
         prediction_id: prediction.id,
         candidate_id: candidateId,
@@ -113,6 +156,9 @@ export const usePredictions = () => {
         .insert(predictionItems);
 
       if (itemsError) throw itemsError;
+
+      // Calculate and update score
+      await calculateAndUpdateScore(user.id, selectedCandidates);
       
       toast.success("🎉 Prédictions enregistrées!", {
         description: "Rendez-vous sur le leaderboard pour voir votre classement!"

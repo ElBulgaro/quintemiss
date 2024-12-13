@@ -21,7 +21,7 @@ export function Leaderboard() {
       console.log('Fetching leaderboard data...');
       const { data: scores, error: scoresError } = await supabase
         .from('scores')
-        .select('user_id, score, perfect_match')
+        .select('user_id, score, perfect_match, scored_at')
         .order('score', { ascending: false })
         .limit(10);
 
@@ -55,6 +55,7 @@ export function Leaderboard() {
       console.log('Combined leaderboard data:', combinedData);
       return combinedData;
     },
+    refetchInterval: 5000, // Refresh every 5 seconds
   });
 
   const { data: userScore } = useQuery({
@@ -64,7 +65,7 @@ export function Leaderboard() {
       console.log('Fetching user score for:', currentUser?.id);
       const { data, error } = await supabase
         .from('scores')
-        .select('score, perfect_match')
+        .select('score, perfect_match, scored_at')
         .eq('user_id', currentUser?.id)
         .limit(1);
 
@@ -76,6 +77,7 @@ export function Leaderboard() {
       console.log('User score data:', data);
       return data?.[0] || { score: 0, perfect_match: false };
     },
+    refetchInterval: 5000, // Refresh every 5 seconds
   });
 
   const { data: userRank } = useQuery({
@@ -99,6 +101,7 @@ export function Leaderboard() {
       console.log('User rank:', rank);
       return rank;
     },
+    refetchInterval: 5000, // Refresh every 5 seconds
   });
 
   if (isLoading) {
