@@ -42,7 +42,7 @@ export function CandidatesView({
         const { data, error } = await supabase
           .from('sheet_candidates')
           .select('*')
-          .order('name');
+          .order('region');
         
         if (error) {
           console.error('Error fetching sheet candidates:', error);

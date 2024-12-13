@@ -85,7 +85,7 @@ export const CandidatesList = ({
                     onClick={toggleImage}
                     className="text-xs h-8 px-2 shadow-sm hover:shadow-md transition-all bg-white/50"
                   >
-                    {showOfficialPhoto ? '🤵‍♀️ Portrait officiel' : '👙 Maillot de bain'}
+                    {showOfficialPhoto ? '👙 Maillot de bain' : '🤵‍♀️ Portrait officiel'}
                   </Button>
                   <ColumnToggle singleColumn={singleColumn} onToggle={setSingleColumn} />
                 </div>
