@@ -97,7 +97,7 @@ export default function Predictions() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main content - Selected candidates */}
           <div className="lg:col-span-8">
-            <div className="glass-card p-6 rounded-lg mb-8">
+            <div className="glass-card rounded-lg mb-8">
               <SelectedCandidates
                 selectedCandidates={selectedCandidates}
                 onDragEnd={handleDragEnd}
@@ -115,7 +115,6 @@ export default function Predictions() {
                 <Button 
                   size="lg" 
                   className="w-full mb-4"
-                  disabled={selectedCandidates.length === 5}
                 >
                   Sélectionner des candidates ({selectedCandidates.length}/5)
                 </Button>
