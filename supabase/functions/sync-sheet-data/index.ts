@@ -63,7 +63,7 @@ serve(async (req) => {
             throw findError;
           }
 
-          if (existingCandidate) {
+          if (existingCandidate?.id) {
             // Update existing candidate
             const { error: updateError } = await supabase
               .from('sheet_candidates')
@@ -95,6 +95,7 @@ serve(async (req) => {
 
       // Clean up old candidates
       try {
+        // Get all current candidates from the database
         const { data: currentCandidates, error: getCurrentError } = await supabase
           .from('sheet_candidates')
           .select('id, name, region');
@@ -105,15 +106,24 @@ serve(async (req) => {
         }
 
         // Get all prediction items that reference sheet_candidates
-        const { data: predictionItems } = await supabase
+        const { data: predictionItems, error: predictionError } = await supabase
           .from('prediction_items')
           .select('candidate_id');
 
-        // Get unique candidate IDs from prediction items
+        if (predictionError) {
+          console.error('Error getting prediction items:', predictionError);
+          throw predictionError;
+        }
+
+        // Create a Set of candidate IDs that are referenced in predictions
         const referencedCandidateIds = new Set(predictionItems?.map(item => item.candidate_id) || []);
 
-        // Find candidates to delete (not in new data and not referenced)
-        const newCandidateKeys = new Set(candidatesForDb.map(c => `${c.name}-${c.region}`));
+        // Create a Set of candidate identifiers from the new data
+        const newCandidateKeys = new Set(
+          candidatesForDb.map(c => `${c.name}-${c.region}`)
+        );
+
+        // Find candidates to delete (not in new data and not referenced in predictions)
         const candidatesToDelete = currentCandidates
           ?.filter(c => {
             const key = `${c.name}-${c.region}`;
@@ -122,6 +132,7 @@ serve(async (req) => {
           .map(c => c.id) || [];
 
         if (candidatesToDelete.length > 0) {
+          console.log('Candidates to delete:', candidatesToDelete);
           const { error: deleteError } = await supabase
             .from('sheet_candidates')
             .delete()
