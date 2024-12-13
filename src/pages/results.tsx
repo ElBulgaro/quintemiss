@@ -17,9 +17,9 @@ export default function Results() {
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="space-y-8">
           <OfficialResults />
-          <ScoreExplanation />
         </div>
-        <div>
+        <div className="space-y-8">
+          <ScoreExplanation />
           <Leaderboard />
         </div>
       </div>
