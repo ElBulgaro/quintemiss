@@ -1,6 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Candidate } from "@/data/types";
-import type { RankingState } from "@/hooks/use-rankings";
+import type { RankingState } from "@/hooks/use-admin-rankings";
 
 interface CandidateRowProps {
   candidate: Candidate;

@@ -4,7 +4,7 @@ import type { Candidate } from "@/data/types";
 import { CandidateRow } from "./CandidateRow";
 import { ClearResultsDialog } from "./ClearResultsDialog";
 import { useState } from "react";
-import { useRankings } from "@/hooks/use-rankings";
+import { useAdminRankings } from "@/hooks/use-admin-rankings";
 
 interface ResultsTableProps {
   candidates: Candidate[];
@@ -18,7 +18,7 @@ export function ResultsTable({ candidates }: ResultsTableProps) {
     isClearing,
     handleRankingChange,
     clearAllRankings,
-  } = useRankings(candidates);
+  } = useAdminRankings(candidates);
 
   const sortedCandidates = [...candidates].sort((a, b) => 
     a.region.localeCompare(b.region)
