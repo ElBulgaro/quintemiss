@@ -55,6 +55,7 @@ serve(async (req) => {
         // Check if ranking changed
         if (existing?.ranking !== newRanking) {
           rankingChanged = true;
+          console.log(`Ranking changed for ${row["Nom Complet"]}: ${existing?.ranking} -> ${newRanking}`);
         }
 
         const candidate = {
@@ -93,12 +94,16 @@ serve(async (req) => {
     // If any rankings changed, manually trigger score recalculation
     if (rankingChanged) {
       try {
+        console.log('Rankings changed, recalculating scores...');
+        
         // Get all predictions
         const { data: predictions, error: predictionsError } = await supabase
           .from('predictions')
           .select('user_id, predictions');
 
         if (predictionsError) throw predictionsError;
+
+        console.log(`Found ${predictions?.length || 0} predictions to process`);
 
         // Get current rankings
         const { data: candidates, error: candidatesError } = await supabase
@@ -151,6 +156,8 @@ serve(async (req) => {
           if (perfectMatch && positionMatches === 5) {
             totalScore += 200;
           }
+
+          console.log(`Calculated score for user ${prediction.user_id}: ${totalScore} points`);
 
           // Update score
           const { error: scoreError } = await supabase
