@@ -45,10 +45,10 @@ export function CandidatesView({
     const baseClasses = 'grid gap-4';
     
     if (viewMode === 'grid-2') {
-      return `${baseClasses} grid-cols-2`;
+      return `${baseClasses} grid-cols-1 sm:grid-cols-2`;
     }
     
-    return `${baseClasses} grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`;
+    return `${baseClasses} grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`;
   };
 
   if (isLoading) {
