@@ -107,15 +107,6 @@ function manualSync() {
       }
     }
     
-    // Sync results
-    const resultsSheet = ss.getSheetByName('Results');
-    if (resultsSheet) {
-      const resultsData = getSheetData(resultsSheet);
-      if (resultsData.length > 0) {
-        syncSuccess = syncSuccess && sendToSupabase('results', resultsData);
-      }
-    }
-    
     // Show completion message
     if (syncSuccess) {
       SpreadsheetApp.getUi().alert('Sync completed successfully!');
