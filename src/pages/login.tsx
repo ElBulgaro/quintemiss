@@ -12,9 +12,24 @@ export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  const validatePassword = (value: string) => {
+    if (value.length < 6) {
+      setPasswordError("Le mot de passe doit contenir au moins 6 caractères");
+      return false;
+    }
+    setPasswordError("");
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validatePassword(password)) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -39,7 +54,7 @@ export default function Login() {
           password,
           options: {
             data: {
-              username: username, // Include username in metadata
+              username: username,
             }
           }
         });
@@ -145,15 +160,21 @@ export default function Login() {
                 type="password"
                 placeholder="Choisissez un mot de passe"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  validatePassword(e.target.value);
+                }}
                 required
               />
+              {passwordError && (
+                <p className="text-sm text-red-500 mt-1">{passwordError}</p>
+              )}
             </div>
 
             <Button 
               type="submit" 
               className="w-full"
-              disabled={isLoading}
+              disabled={isLoading || !!passwordError}
             >
               {isLoading ? "Chargement..." : (isSignUp ? "S'inscrire" : "Se connecter")}
             </Button>
