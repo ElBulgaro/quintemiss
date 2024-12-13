@@ -33,16 +33,16 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const email = `${username}@temp.com`;
+      const email = `${username.toLowerCase()}@temp.com`;
       const savedPredictions = localStorage.getItem('predictions');
       const predictions = savedPredictions ? JSON.parse(savedPredictions) : [];
 
       if (isSignUp) {
-        // Check if user exists in profiles
+        // Check if user exists in profiles, case-insensitive
         const { data: existingUsers } = await supabase
           .from('profiles')
           .select('username')
-          .eq('username', username);
+          .ilike('username', username);
 
         if (existingUsers && existingUsers.length > 0) {
           toast.error("Ce nom d'utilisateur est déjà pris");
@@ -103,11 +103,11 @@ export default function Login() {
         toast.success("Compte créé avec succès!");
         navigate("/predictions");
       } else {
-        // For login, first check if the user exists
+        // For login, check if the user exists case-insensitively
         const { data: existingUsers } = await supabase
           .from('profiles')
           .select('username')
-          .eq('username', username);
+          .ilike('username', username);
 
         if (!existingUsers || existingUsers.length === 0) {
           toast.error("Ce nom d'utilisateur n'existe pas");
@@ -115,9 +115,13 @@ export default function Login() {
           return;
         }
 
+        // Use the exact username from the database for login
+        const exactUsername = existingUsers[0].username;
+        const loginEmail = `${exactUsername.toLowerCase()}@temp.com`;
+
         // Sign in flow
         const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
+          email: loginEmail,
           password,
         });
 
