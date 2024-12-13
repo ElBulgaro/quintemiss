@@ -29,12 +29,15 @@ serve(async (req) => {
     console.log(`Processing ${data.length} candidates`);
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Keep track of which candidates had ranking changes
+    let rankingChanged = false;
+
     for (const row of data) {
       try {
         // First try to find existing candidate by name and region
         const { data: existing, error: searchError } = await supabase
           .from('sheet_candidates')
-          .select('id')
+          .select('id, ranking')
           .eq('name', row["Nom Complet"])
           .eq('region', row["Région"])
           .maybeSingle();
@@ -42,6 +45,16 @@ serve(async (req) => {
         if (searchError) {
           console.error(`Error searching for ${row["Nom Complet"]}:`, searchError);
           continue;
+        }
+
+        const newRanking = row["Classement"]?.toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '') || 'inconnu';
+
+        // Check if ranking changed
+        if (existing?.ranking !== newRanking) {
+          rankingChanged = true;
         }
 
         const candidate = {
@@ -53,10 +66,7 @@ serve(async (req) => {
           image_url: row["Photo URL (Maillot)"],
           official_photo_url: row["Photo URL (Costume)"],
           portrait_url: row["URL Portrait TF1"],
-          ranking: row["Classement"]?.toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]+/g, '_')
-            .replace(/^_+|_+$/g, '') || 'inconnu',
+          ranking: newRanking,
           last_synced_at: new Date().toISOString(),
         };
 
@@ -77,6 +87,87 @@ serve(async (req) => {
         console.log(`${existing ? 'Updated' : 'Inserted'} ${candidate.name}`);
       } catch (error) {
         console.error(`Error processing ${row["Nom Complet"]}:`, error);
+      }
+    }
+
+    // If any rankings changed, manually trigger score recalculation
+    if (rankingChanged) {
+      try {
+        // Get all predictions
+        const { data: predictions, error: predictionsError } = await supabase
+          .from('predictions')
+          .select('user_id, predictions');
+
+        if (predictionsError) throw predictionsError;
+
+        // Get current rankings
+        const { data: candidates, error: candidatesError } = await supabase
+          .from('sheet_candidates')
+          .select('id, ranking');
+
+        if (candidatesError) throw candidatesError;
+
+        // Calculate and save scores for each user
+        for (const prediction of predictions) {
+          let totalScore = 0;
+          let perfectMatch = true;
+          let positionMatches = 0;
+
+          prediction.predictions.forEach((candidateId: string, index: number) => {
+            const candidate = candidates.find(c => c.id === candidateId);
+            if (!candidate) return;
+
+            // Points for being in top 15
+            if (['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5', 'top15'].includes(candidate.ranking)) {
+              totalScore += 10;
+            }
+
+            // Points for being in top 5
+            if (['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5'].includes(candidate.ranking)) {
+              totalScore += 20;
+            }
+
+            // Points for correct position
+            if (
+              (candidate.ranking === 'miss_france' && index === 0) ||
+              (candidate.ranking === '1ere_dauphine' && index === 1) ||
+              (candidate.ranking === '2eme_dauphine' && index === 2) ||
+              (candidate.ranking === '3eme_dauphine' && index === 3) ||
+              (candidate.ranking === '4eme_dauphine' && index === 4)
+            ) {
+              totalScore += 50;
+              positionMatches++;
+            } else {
+              perfectMatch = false;
+            }
+
+            // Winner bonus
+            if (candidate.ranking === 'miss_france' && index === 0) {
+              totalScore += 50;
+            }
+          });
+
+          // Perfect match bonus
+          if (perfectMatch && positionMatches === 5) {
+            totalScore += 200;
+          }
+
+          // Update score
+          const { error: scoreError } = await supabase
+            .from('scores')
+            .upsert({
+              user_id: prediction.user_id,
+              score: totalScore,
+              perfect_match: perfectMatch && positionMatches === 5,
+              scored_at: new Date().toISOString(),
+            });
+
+          if (scoreError) {
+            console.error(`Error updating score for user ${prediction.user_id}:`, scoreError);
+          }
+        }
+      } catch (error) {
+        console.error('Error recalculating scores:', error);
       }
     }
 
