@@ -13,15 +13,21 @@ interface CandidatesGridProps {
 export function CandidatesGrid({ searchQuery = "", singleColumn = false }: CandidatesGridProps) {
   const isMobile = useIsMobile();
   const { data: candidates, isLoading } = useQuery({
-    queryKey: ['candidates'],
+    queryKey: ['sheet-candidates'],
     queryFn: async () => {
+      console.log('Fetching sheet candidates...');
       const { data, error } = await supabase
-        .from('candidates')
+        .from('sheet_candidates')
         .select('*')
         .order('region')
         .order('name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching sheet candidates:', error);
+        throw error;
+      }
+
+      console.log('Fetched sheet candidates:', data);
       return data;
     },
   });
