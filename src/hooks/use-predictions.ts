@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { calculateScore } from '@/utils/calculateScore';
 
 export const usePredictions = () => {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
@@ -57,52 +56,6 @@ export const usePredictions = () => {
     setSelectedCandidates([]);
   };
 
-  const calculateAndUpdateScore = async (userId: string, predictions: string[]) => {
-    try {
-      console.log('Calculating score for predictions:', predictions);
-      
-      // Get current rankings
-      const { data: officialResults, error: resultsError } = await supabase
-        .from('official_results')
-        .select('semi_finalists, final_ranking')
-        .limit(1)
-        .single();
-
-      if (resultsError) throw resultsError;
-
-      console.log('Final ranking:', officialResults.final_ranking);
-      console.log('Semi-finalists:', officialResults.semi_finalists);
-
-      // Calculate score
-      const { score, perfectMatch } = calculateScore(
-        predictions, 
-        officialResults.final_ranking || [], 
-        officialResults.semi_finalists || []
-      );
-      
-      console.log('Calculated score:', score, 'Perfect match:', perfectMatch);
-
-      // Use upsert to handle both insert and update cases
-      const { error: scoreError } = await supabase
-        .from('scores')
-        .upsert({
-          user_id: userId,
-          score,
-          perfect_match: perfectMatch,
-          scored_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (scoreError) throw scoreError;
-      console.log('Score saved successfully');
-
-    } catch (error) {
-      console.error('Error calculating/saving score:', error);
-      throw error;
-    }
-  };
-
   const savePredictions = async () => {
     if (selectedCandidates.length !== 5) {
       toast.error("Veuillez sélectionner exactement 5 candidates");
@@ -144,9 +97,7 @@ export const usePredictions = () => {
 
       if (itemsError) throw itemsError;
 
-      // Calculate and update score
-      await calculateAndUpdateScore(user.id, selectedCandidates);
-      
+      // The score will be calculated automatically by the database trigger
       toast.success("🎉 Prédictions enregistrées!", {
         description: "Rendez-vous sur le leaderboard pour voir votre classement!"
       });
