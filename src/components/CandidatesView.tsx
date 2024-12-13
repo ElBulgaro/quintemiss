@@ -42,7 +42,7 @@ export function CandidatesView({
       return 'flex flex-col gap-2';
     }
     
-    const baseClasses = 'grid gap-4';
+    const baseClasses = 'container grid gap-6';
     
     if (viewMode === 'grid-2') {
       return `${baseClasses} grid-cols-1 sm:grid-cols-2`;
