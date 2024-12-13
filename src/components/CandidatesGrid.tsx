@@ -29,10 +29,11 @@ export function CandidatesGrid({ searchQuery = "", singleColumn = false }: Candi
         
         console.log('Total number of sheet candidates:', count);
 
-        // Now fetch all data with a simple query
+        // Now fetch all data with a simple query and order by region
         const { data, error } = await supabase
           .from('sheet_candidates')
-          .select('*');
+          .select('*')
+          .order('region');
         
         if (error) {
           console.error('Error fetching sheet candidates:', error);
