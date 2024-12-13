@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Trophy } from "lucide-react";
+import { Trophy, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import type { Candidate } from "@/data/types";
@@ -56,9 +56,13 @@ export function OfficialResults() {
       return POSITION_LABELS[position as keyof typeof POSITION_LABELS] || "TOP 5";
     }
     
-    // Check if candidate is in semi-finalists
-    if (semiFinalists.includes(candidateId)) {
-      return "TOP 15";
+    // If semi-finalists are set and candidate is in it, show TOP 15
+    if (semiFinalists.length > 0) {
+      if (semiFinalists.includes(candidateId)) {
+        return "TOP 15";
+      }
+      // If semi-finalists are set but candidate is not in it, show X
+      return "X";
     }
 
     return "?";
@@ -78,8 +82,17 @@ export function OfficialResults() {
     if (aPosition !== -1) return -1;
     if (bPosition !== -1) return 1;
     
-    // If neither is in final ranking, sort by region
-    return a.region.localeCompare(b.region);
+    // If neither is in final ranking, check TOP 15
+    const aInTop15 = officialResults?.semi_finalists?.includes(a.id) ?? false;
+    const bInTop15 = officialResults?.semi_finalists?.includes(b.id) ?? false;
+    
+    // If both or neither are in TOP 15, sort by region
+    if (aInTop15 === bInTop15) {
+      return a.region.localeCompare(b.region);
+    }
+    
+    // TOP 15 candidates come before non-TOP 15
+    return aInTop15 ? -1 : 1;
   });
 
   return (
@@ -90,26 +103,45 @@ export function OfficialResults() {
       </h2>
 
       <div className="space-y-4">
-        {sortedCandidates.map((candidate) => (
-          <Card key={candidate.id} className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
-                <span className="font-bold text-gold">{getPositionLabel(candidate.id)}</span>
-              </div>
+        {sortedCandidates.map((candidate) => {
+          const positionLabel = getPositionLabel(candidate.id);
+          return (
+            <Card key={candidate.id} className="p-4">
               <div className="flex items-center gap-4">
-                <img
-                  src={candidate.image_url}
-                  alt={candidate.name}
-                  className="h-12 w-12 object-cover rounded-full"
-                />
-                <div>
-                  <h3 className="font-semibold">{candidate.name}</h3>
-                  <p className="text-sm text-muted-foreground">{candidate.region}</p>
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                  positionLabel === "X" 
+                    ? "bg-red-100" 
+                    : positionLabel === "?" 
+                    ? "bg-gray-100" 
+                    : "bg-gold/10"
+                }`}>
+                  {positionLabel === "X" ? (
+                    <X className="h-4 w-4 text-red-500" />
+                  ) : (
+                    <span className={`font-bold ${
+                      positionLabel === "?" 
+                        ? "text-gray-500" 
+                        : "text-gold"
+                    }`}>
+                      {positionLabel}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  <img
+                    src={candidate.image_url}
+                    alt={candidate.name}
+                    className="h-12 w-12 object-cover rounded-full"
+                  />
+                  <div>
+                    <h3 className="font-semibold">{candidate.name}</h3>
+                    <p className="text-sm text-muted-foreground">{candidate.region}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
