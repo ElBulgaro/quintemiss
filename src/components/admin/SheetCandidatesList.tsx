@@ -8,21 +8,28 @@ import type { Database } from "@/integrations/supabase/types";
 type SheetCandidate = Database['public']['Tables']['sheet_candidates']['Row'];
 
 export function SheetCandidatesList() {
-  const { data: sheetCandidates, isLoading, refetch } = useQuery({
+  const { data: sheetCandidates, isLoading, error, refetch } = useQuery({
     queryKey: ['sheet-candidates'],
     queryFn: async () => {
+      console.log('Fetching sheet candidates...');
       const { data, error } = await supabase
         .from('sheet_candidates')
         .select('*')
         .order('name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching sheet candidates:', error);
+        throw error;
+      }
+      
+      console.log('Fetched sheet candidates:', data);
       return data;
     },
   });
 
   const handlePromote = async (candidate: SheetCandidate) => {
     try {
+      console.log('Promoting candidate:', candidate);
       const { error: insertError } = await supabase
         .from('candidates')
         .insert({
@@ -46,8 +53,25 @@ export function SheetCandidatesList() {
     }
   };
 
+  if (error) {
+    console.error('Error in SheetCandidatesList:', error);
+    return (
+      <div className="p-4 text-red-500">
+        Error loading sheet candidates: {error.message}
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div>Loading sheet candidates...</div>;
+    return <div className="p-4">Loading sheet candidates...</div>;
+  }
+
+  if (!sheetCandidates?.length) {
+    return (
+      <div className="p-4 text-muted-foreground">
+        No candidates found in the sheet. Try syncing with Google Sheets first.
+      </div>
+    );
   }
 
   return (
