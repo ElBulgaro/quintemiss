@@ -89,16 +89,6 @@ export default function Predictions() {
     }
   };
 
-  const getSelectionMessage = () => {
-    if (selectedCandidates.length < 5) {
-      return "Complétez votre Top 5 pour valider vos prédictions";
-    }
-    if (selectedCandidates.length > 5) {
-      return "Réduisez votre sélection à 5 candidates pour valider vos prédictions";
-    }
-    return null;
-  };
-
   return (
     <div className="min-h-screen bg-cream pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,13 +108,6 @@ export default function Predictions() {
                 candidates={candidates}
               />
             </div>
-
-            {/* Selection message */}
-            {getSelectionMessage() && (
-              <p className="text-center text-rich-black/60 mb-4">
-                {getSelectionMessage()}
-              </p>
-            )}
 
             {/* Candidate selection button/drawer */}
             <Sheet>
