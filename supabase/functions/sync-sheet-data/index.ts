@@ -33,7 +33,7 @@ serve(async (req) => {
         name: candidate["Nom Complet"],
         region: candidate["Région"],
         bio: candidate["Bio"],
-        age: parseInt(candidate["Age"]),
+        age: candidate["Age"] ? parseInt(candidate["Age"]) : null,
         instagram: candidate["Instagram"],
         image_url: candidate["Photo URL (Maillot)"],
         official_photo_url: candidate["Photo URL (Costume)"],
@@ -50,36 +50,32 @@ serve(async (req) => {
       // Get unique candidate IDs from prediction items
       const referencedCandidateIds = new Set(predictionItems?.map(item => item.candidate_id) || []);
 
-      // Get all existing candidates
-      const { data: existingCandidates } = await supabase
-        .from('sheet_candidates')
-        .select('id, name, region');
-
-      // Create a map of name+region to ID for existing candidates
-      const existingCandidatesMap = new Map(
-        existingCandidates?.map(c => [`${c.name}-${c.region}`, c.id]) || []
-      );
-
-      // Track which candidates we've processed
-      const processedCandidates = new Set<string>();
-
-      // Update or insert each candidate
+      // Process each candidate
       for (const candidate of candidatesForDb) {
-        const key = `${candidate.name}-${candidate.region}`;
-        const existingId = existingCandidatesMap.get(key);
-        processedCandidates.add(key);
-        
-        if (existingId) {
+        // First try to find an existing candidate by name and region
+        const { data: existingCandidates, error: findError } = await supabase
+          .from('sheet_candidates')
+          .select('id, name, region')
+          .eq('name', candidate.name)
+          .eq('region', candidate.region);
+
+        if (findError) {
+          console.error('Error finding existing candidate:', findError);
+          throw findError;
+        }
+
+        if (existingCandidates && existingCandidates.length > 0) {
           // Update existing candidate
           const { error: updateError } = await supabase
             .from('sheet_candidates')
             .update(candidate)
-            .eq('id', existingId);
+            .eq('id', existingCandidates[0].id);
 
           if (updateError) {
             console.error('Error updating candidate:', updateError);
             throw updateError;
           }
+          console.log(`Updated candidate: ${candidate.name} from ${candidate.region}`);
         } else {
           // Insert new candidate
           const { error: insertError } = await supabase
@@ -90,15 +86,26 @@ serve(async (req) => {
             console.error('Error inserting new candidate:', insertError);
             throw insertError;
           }
+          console.log(`Inserted new candidate: ${candidate.name} from ${candidate.region}`);
         }
       }
 
-      // Delete candidates that no longer exist in the sheet
-      // but preserve referenced candidates
-      const candidatesToDelete = existingCandidates
+      // Get all current candidates after updates
+      const { data: currentCandidates, error: getCurrentError } = await supabase
+        .from('sheet_candidates')
+        .select('id, name, region');
+
+      if (getCurrentError) {
+        console.error('Error getting current candidates:', getCurrentError);
+        throw getCurrentError;
+      }
+
+      // Find candidates to delete (not in new data and not referenced)
+      const newCandidateKeys = new Set(candidatesForDb.map(c => `${c.name}-${c.region}`));
+      const candidatesToDelete = currentCandidates
         ?.filter(c => {
           const key = `${c.name}-${c.region}`;
-          return !processedCandidates.has(key) && !referencedCandidateIds.has(c.id);
+          return !newCandidateKeys.has(key) && !referencedCandidateIds.has(c.id);
         })
         .map(c => c.id) || [];
 
@@ -112,6 +119,7 @@ serve(async (req) => {
           console.error('Error deleting outdated candidates:', deleteError);
           throw deleteError;
         }
+        console.log(`Deleted ${candidatesToDelete.length} outdated candidates`);
       }
 
       console.log('Successfully synced all candidates');
