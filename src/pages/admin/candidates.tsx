@@ -6,6 +6,8 @@ import { ResultsTable } from "@/components/admin/results/ResultsTable";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Candidate } from "@/data/types";
+import { Button } from "@/components/ui/button";
+import { Sync } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,9 +31,10 @@ export default function AdminCandidates() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
-  const { data: candidates, isLoading } = useQuery({
+  const { data: candidates, isLoading, refetch } = useQuery({
     queryKey: ['candidates'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -43,6 +46,51 @@ export default function AdminCandidates() {
       return data as Candidate[];
     },
   });
+
+  const handleSync = async () => {
+    try {
+      setIsSyncing(true);
+      const { data: profile } = await supabase.auth.getUser();
+      
+      if (!profile.user) {
+        toast.error("You must be logged in to sync data");
+        return;
+      }
+
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', profile.user.id)
+        .single();
+
+      if (!userProfile?.is_admin) {
+        toast.error("Only admins can sync data");
+        return;
+      }
+
+      const response = await fetch('https://jcdfnkuocpnvniqvqcjm.supabase.co/functions/v1/sync-sheet-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'manual',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync data');
+      }
+
+      await refetch();
+      toast.success("Data synced successfully!");
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast.error("Failed to sync data");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handleAdd = (data: Partial<Candidate>) => {
     console.log("Adding candidate:", data);
@@ -104,7 +152,17 @@ export default function AdminCandidates() {
 
         <TabsContent value="import">
           <div className="space-y-6">
-            <h2 className="text-3xl font-playfair font-bold">Import Candidates</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-3xl font-playfair font-bold">Import Candidates</h2>
+              <Button 
+                onClick={handleSync}
+                disabled={isSyncing}
+                variant="outline"
+              >
+                <Sync className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                {isSyncing ? "Syncing..." : "Sync with Sheet"}
+              </Button>
+            </div>
             <CandidateImport onConfirm={handleImportConfirm} />
           </div>
         </TabsContent>
@@ -117,7 +175,6 @@ export default function AdminCandidates() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialogs */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
