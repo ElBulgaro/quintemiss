@@ -7,6 +7,7 @@ export function OfficialResults() {
   const { data: userPredictions } = useQuery({
     queryKey: ['user-predictions'],
     queryFn: async () => {
+      console.log('Fetching user predictions...');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
@@ -17,7 +18,11 @@ export function OfficialResults() {
         .order('submitted_at', { ascending: false })
         .limit(1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching predictions:', error);
+        throw error;
+      }
+      console.log('User predictions:', data?.[0]);
       return data?.[0] || null;
     },
   });
@@ -25,12 +30,16 @@ export function OfficialResults() {
   const { data: candidates, isLoading } = useQuery({
     queryKey: ['sheet-candidates'],
     queryFn: async () => {
+      console.log('Fetching sheet candidates...');
       const { data, error } = await supabase
         .from('sheet_candidates')
         .select('*')
         .order('region');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching candidates:', error);
+        throw error;
+      }
 
       // Sort candidates based on their ranking
       return (data || []).sort((a, b) => {
