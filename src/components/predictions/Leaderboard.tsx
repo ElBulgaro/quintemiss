@@ -52,10 +52,12 @@ export function Leaderboard() {
         .from('scores')
         .select('score')
         .eq('user_id', currentUser?.id)
-        .single();
+        .limit(1);  // Add limit to ensure we only get one row
 
       if (error) throw error;
-      return data;
+      
+      // Return the first score or a default score object
+      return data?.[0] || { score: 0 };
     },
   });
 
@@ -63,10 +65,13 @@ export function Leaderboard() {
     queryKey: ['user-rank'],
     enabled: !!currentUser && !!userScore,
     queryFn: async () => {
+      // If user has no score yet, they're last
+      if (!userScore?.score) return "N/A";
+
       const { count, error } = await supabase
         .from('scores')
         .select('*', { count: 'exact', head: true })
-        .gt('score', userScore?.score || 0);
+        .gt('score', userScore.score || 0);
 
       if (error) throw error;
       return (count || 0) + 1;
@@ -90,7 +95,7 @@ export function Leaderboard() {
         Classement Joueurs
       </h2>
 
-      {currentUser && userScore && (
+      {currentUser && (
         <Card className="p-4 bg-gold/5 border-gold mb-6">
           <div className="flex items-center justify-between">
             <div>
@@ -98,7 +103,7 @@ export function Leaderboard() {
               <p className="text-sm text-rich-black/60">Position #{userRank}</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-rich-black">{userScore.score}</p>
+              <p className="text-2xl font-bold text-rich-black">{userScore?.score || 0}</p>
               <p className="text-sm text-rich-black/60">points</p>
             </div>
           </div>
