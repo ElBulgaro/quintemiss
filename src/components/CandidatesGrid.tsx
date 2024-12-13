@@ -12,7 +12,7 @@ interface CandidatesGridProps {
 
 export function CandidatesGrid({ searchQuery = "", singleColumn = false }: CandidatesGridProps) {
   const isMobile = useIsMobile();
-  const { data: candidates, isLoading } = useQuery({
+  const { data: candidates, isLoading, error } = useQuery({
     queryKey: ['sheet-candidates'],
     queryFn: async () => {
       console.log('Fetching sheet candidates...');
@@ -37,6 +37,17 @@ export function CandidatesGrid({ searchQuery = "", singleColumn = false }: Candi
     candidate.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (candidate.bio?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
+
+  if (error) {
+    console.error('Error in CandidatesGrid:', error);
+    return (
+      <div className="container mx-auto py-12 text-center">
+        <p className="text-lg text-red-500">
+          Error loading candidates: {error.message}
+        </p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
