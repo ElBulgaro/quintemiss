@@ -26,7 +26,7 @@ export const CandidatesList = ({
   return (
     <div className="flex flex-col h-full">
       <div className="sticky top-0 z-10 bg-cream/95 backdrop-blur-sm shadow-sm">
-        <div className="px-4 py-4">
+        <div className="px-2 py-4">
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16">
             {!isMobile && (
               <>
