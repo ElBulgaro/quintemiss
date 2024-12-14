@@ -37,11 +37,11 @@ export function MobileMenu({
           Predictions
         </Link>
         <Link
-          to="/leaderboard"
+          to="/results"
           className="block px-3 py-2 text-rich-black/80 hover:text-rich-black transition-colors"
           onClick={onClose}
         >
-          Leaderboard
+          Résultats
         </Link>
         {isAdmin && (
           <Link
