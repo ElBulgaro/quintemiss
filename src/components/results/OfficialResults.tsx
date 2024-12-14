@@ -64,18 +64,21 @@ export function OfficialResults() {
       }
 
       // Sort candidates based on their ranking and region
-      return (data || []).sort((a, b) => {
+      const sortedData = [...(data || [])].sort((a, b) => {
         const rankA = getRankingOrder(a.ranking);
         const rankB = getRankingOrder(b.ranking);
         
-        // Sort by rank order first
+        // First sort by ranking order
         if (rankA !== rankB) {
           return rankA - rankB;
         }
         
-        // If ranks are equal, sort by region as a secondary sort
+        // If ranks are equal, sort by region as secondary sort
         return a.region.localeCompare(b.region);
       });
+
+      console.log('Sorted candidates:', sortedData);
+      return sortedData;
     },
   });
 
