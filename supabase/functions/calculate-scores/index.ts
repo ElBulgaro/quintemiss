@@ -7,15 +7,12 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
     const { user_id } = await req.json()
     
     if (!user_id) {
@@ -23,6 +20,10 @@ serve(async (req) => {
     }
 
     console.log(`Calculating score for user ${user_id}`)
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
     // Get user's prediction
     const { data: prediction, error: predictionError } = await supabase
@@ -33,7 +34,18 @@ serve(async (req) => {
       .limit(1)
       .single()
 
-    if (predictionError) throw predictionError
+    if (predictionError) {
+      console.error('Error fetching prediction:', predictionError)
+      throw predictionError
+    }
+
+    if (!prediction) {
+      console.log('No prediction found for user')
+      return new Response(
+        JSON.stringify({ success: true, score: 0, perfect_match: false }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
 
     // Get rankings for predicted candidates
     const { data: candidates, error: candidatesError } = await supabase
@@ -41,7 +53,10 @@ serve(async (req) => {
       .select('id, ranking')
       .in('id', prediction.predictions)
 
-    if (candidatesError) throw candidatesError
+    if (candidatesError) {
+      console.error('Error fetching candidates:', candidatesError)
+      throw candidatesError
+    }
 
     // Calculate score
     let totalScore = 0
@@ -88,7 +103,7 @@ serve(async (req) => {
 
     console.log(`Score calculated for user ${user_id}: ${totalScore} points (Perfect match: ${perfectMatch})`)
 
-    // Update score using upsert
+    // Use upsert to handle existing scores
     const { error: scoreError } = await supabase
       .from('scores')
       .upsert({
@@ -96,9 +111,14 @@ serve(async (req) => {
         score: totalScore,
         perfect_match: perfectMatch,
         scored_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id'
       })
 
-    if (scoreError) throw scoreError
+    if (scoreError) {
+      console.error('Error upserting score:', scoreError)
+      throw scoreError
+    }
 
     return new Response(
       JSON.stringify({ success: true, score: totalScore, perfect_match: perfectMatch }),
@@ -108,7 +128,10 @@ serve(async (req) => {
     console.error('Error calculating score:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      },
     )
   }
 })
