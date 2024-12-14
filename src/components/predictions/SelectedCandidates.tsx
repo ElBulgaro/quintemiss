@@ -126,7 +126,7 @@ export const SelectedCandidates = ({
         onClick={handleSubmit}
         className="w-full mt-2"
         // selectedCandidates.length !== 5 || isSubmitting
-        disabled={selectedCandidates.length !== 5 || isSubmitting}
+        disabled={true}
       >
         {isSubmitting ? "Enregistrement..." : "Valider mes prédictions"}
       </Button>
