@@ -51,19 +51,31 @@ export function OfficialResults() {
         throw error;
       }
 
+      // Define the ranking order
+      const rankOrder = {
+        'miss_france': 1,
+        '1ere_dauphine': 2,
+        '2eme_dauphine': 3,
+        '3eme_dauphine': 4,
+        '4eme_dauphine': 5,
+        'top5': 6,
+        'top15': 7,
+        'inconnu': 8
+      };
+
       // Sort candidates based on their ranking
       return (data || []).sort((a, b) => {
-        const rankOrder = {
-          'miss_france': 1,
-          '1ere_dauphine': 2,
-          '2eme_dauphine': 3,
-          '3eme_dauphine': 4,
-          '4eme_dauphine': 5,
-          'top5': 6,
-          'top15': 7,
-          'inconnu': 8
-        };
-        return (rankOrder[a.ranking || 'inconnu'] || 8) - (rankOrder[b.ranking || 'inconnu'] || 8);
+        // Get the rank order value, defaulting to 8 (inconnu) if not found
+        const rankA = rankOrder[a.ranking || 'inconnu'] || 8;
+        const rankB = rankOrder[b.ranking || 'inconnu'] || 8;
+        
+        // Sort by rank order first
+        if (rankA !== rankB) {
+          return rankA - rankB;
+        }
+        
+        // If ranks are equal, sort by region as a secondary criterion
+        return a.region.localeCompare(b.region);
       });
     },
   });
