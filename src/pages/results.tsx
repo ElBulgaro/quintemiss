@@ -15,10 +15,10 @@ export default function Results() {
       <h1 className="text-4xl font-playfair font-bold text-rich-black">Résultats</h1>
       
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="space-y-8">
+        <div className="lg:order-1 order-2 space-y-8">
           <OfficialResults />
         </div>
-        <div className="space-y-8">
+        <div className="lg:order-2 order-1 space-y-8">
           <ScoreExplanation />
           <Leaderboard />
         </div>
