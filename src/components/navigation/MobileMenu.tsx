@@ -43,15 +43,6 @@ export function MobileMenu({
         >
           Résultats
         </Link>
-        {isAdmin && (
-          <Link
-            to="/admin/candidates"
-            className="block px-3 py-2 text-rich-black/80 hover:text-rich-black transition-colors"
-            onClick={onClose}
-          >
-            Admin
-          </Link>
-        )}
         {isAuthenticated && (
           <div className="px-3 py-2 text-rich-black/80">
             {username}
