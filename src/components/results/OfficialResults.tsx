@@ -14,6 +14,7 @@ const getRankingDisplay = (ranking: string) => {
     '4eme_dauphine': '4ème Dauphine',
     'top5': 'Top 5',
     'top15': 'Top 15',
+    'eliminee': 'Éliminée',
     'inconnu': 'En attente'
   };
   return rankingMap[ranking] || 'En attente';
@@ -62,7 +63,7 @@ export function OfficialResults() {
         throw error;
       }
 
-      // Sort candidates based on their ranking
+      // Sort candidates based on their ranking and region
       return (data || []).sort((a, b) => {
         const rankA = getRankingOrder(a.ranking);
         const rankB = getRankingOrder(b.ranking);
