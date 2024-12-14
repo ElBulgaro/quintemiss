@@ -1,9 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
 export function OfficialResults() {
+  const queryClient = useQueryClient();
+  
   const { data: session } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
@@ -31,6 +33,8 @@ export function OfficialResults() {
       console.log('User predictions:', data?.[0]);
       return data?.[0] || null;
     },
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache the data
   });
 
   const { data: candidates, isLoading } = useQuery({

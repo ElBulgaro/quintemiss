@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { NavigationLinks } from "./navigation/NavigationLinks";
 import { UserMenu } from "./navigation/UserMenu";
 import { MobileMenu } from "./navigation/MobileMenu";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +16,7 @@ export function Navigation() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -63,6 +65,8 @@ export function Navigation() {
         setIsAuthenticated(false);
         setUsername(null);
         setIsAdmin(false);
+        // Clear all queries from the cache
+        queryClient.clear();
         navigate('/login');
       } else if (session?.user) {
         fetchUserProfile(session.user.id);
@@ -72,7 +76,7 @@ export function Navigation() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [fetchUserProfile, navigate]);
+  }, [fetchUserProfile, navigate, queryClient]);
 
   const handleLogout = async () => {
     try {
@@ -82,6 +86,8 @@ export function Navigation() {
       setIsAdmin(false);
       localStorage.removeItem('user');
       localStorage.removeItem('predictions');
+      // Clear all queries from the cache
+      queryClient.clear();
       toast.success("Déconnexion réussie");
       navigate("/login");
     } catch (error) {
