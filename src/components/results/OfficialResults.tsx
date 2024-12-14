@@ -1,11 +1,25 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trophy } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { ResultsHeader } from "./ResultsHeader";
+import { CandidateResultCard } from "./CandidateResultCard";
+import { getRankingOrder } from "@/utils/rankingOrder";
+
+const getRankingDisplay = (ranking: string) => {
+  const rankingMap = {
+    'miss_france': 'Miss France 2025',
+    '1ere_dauphine': '1ère Dauphine',
+    '2eme_dauphine': '2ème Dauphine',
+    '3eme_dauphine': '3ème Dauphine',
+    '4eme_dauphine': '4ème Dauphine',
+    'top5': 'Top 5',
+    'top15': 'Top 15',
+    'inconnu': 'En attente'
+  };
+  return rankingMap[ranking] || 'En attente';
+};
 
 export function OfficialResults() {
-  const queryClient = useQueryClient();
-  
   const { data: session } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
@@ -33,8 +47,6 @@ export function OfficialResults() {
       console.log('User predictions:', data?.[0]);
       return data?.[0] || null;
     },
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache the data (formerly cacheTime)
   });
 
   const { data: candidates, isLoading } = useQuery({
@@ -43,38 +55,24 @@ export function OfficialResults() {
       console.log('Fetching sheet candidates...');
       const { data, error } = await supabase
         .from('sheet_candidates')
-        .select('*')
-        .order('region');
+        .select('*');
       
       if (error) {
         console.error('Error fetching candidates:', error);
         throw error;
       }
 
-      // Define the ranking order
-      const rankOrder = {
-        'miss_france': 1,
-        '1ere_dauphine': 2,
-        '2eme_dauphine': 3,
-        '3eme_dauphine': 4,
-        '4eme_dauphine': 5,
-        'top5': 6,
-        'top15': 7,
-        'inconnu': 8
-      };
-
       // Sort candidates based on their ranking
       return (data || []).sort((a, b) => {
-        // Get the rank order value, defaulting to 8 (inconnu) if not found
-        const rankA = rankOrder[a.ranking || 'inconnu'] || 8;
-        const rankB = rankOrder[b.ranking || 'inconnu'] || 8;
+        const rankA = getRankingOrder(a.ranking);
+        const rankB = getRankingOrder(b.ranking);
         
         // Sort by rank order first
         if (rankA !== rankB) {
           return rankA - rankB;
         }
         
-        // If ranks are equal, sort by region as a secondary criterion
+        // If ranks are equal, sort by region
         return a.region.localeCompare(b.region);
       });
     },
@@ -116,27 +114,10 @@ export function OfficialResults() {
     return points;
   };
 
-  const getRankingDisplay = (ranking: string) => {
-    const rankingMap = {
-      'miss_france': 'Miss France 2025',
-      '1ere_dauphine': '1ère Dauphine',
-      '2eme_dauphine': '2ème Dauphine',
-      '3eme_dauphine': '3ème Dauphine',
-      '4eme_dauphine': '4ème Dauphine',
-      'top5': 'Top 5',
-      'top15': 'Top 15',
-      'inconnu': 'En attente'
-    };
-    return rankingMap[ranking] || 'En attente';
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
-          <Trophy className="h-6 w-6 text-gold" />
-          Résultats Officiels Miss France 2025
-        </h2>
+        <ResultsHeader />
         <Card className="p-6">
           <p className="text-center text-rich-black/60">
             Chargement des résultats...
@@ -148,54 +129,21 @@ export function OfficialResults() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
-        <Trophy className="h-6 w-6 text-gold" />
-        Résultats Officiels Miss France 2025
-      </h2>
-
+      <ResultsHeader />
       <div className="space-y-4">
         {candidates?.map((candidate) => {
-          const points = getPointsForCandidate(candidate.id, candidate.ranking || 'inconnu');
           const isSelected = userPredictions?.predictions?.includes(candidate.id);
+          const points = getPointsForCandidate(candidate.id, candidate.ranking || 'inconnu');
           const ranking = getRankingDisplay(candidate.ranking || 'inconnu');
           
           return (
-            <Card 
-              key={candidate.id} 
-              className={`p-4 transition-all ${
-                isSelected ? 'bg-gold/5 border-gold' : ''
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                    <img
-                      src={candidate.official_photo_url || candidate.image_url}
-                      alt={candidate.name}
-                      className="absolute w-[400%] h-[400%] object-cover object-top left-1/2 -translate-x-1/2"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{candidate.name}</h3>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                      <p className="text-sm text-muted-foreground">{candidate.region}</p>
-                      {candidate.ranking && candidate.ranking !== 'inconnu' && (
-                        <>
-                          <span className="hidden sm:inline text-muted-foreground">•</span>
-                          <p className="text-sm font-medium text-gold">{ranking}</p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {isSelected && points > 0 && (
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-gold">+{points}</p>
-                    <p className="text-sm text-muted-foreground">points</p>
-                  </div>
-                )}
-              </div>
-            </Card>
+            <CandidateResultCard
+              key={candidate.id}
+              candidate={candidate}
+              isSelected={isSelected}
+              points={points}
+              ranking={ranking}
+            />
           );
         })}
       </div>
