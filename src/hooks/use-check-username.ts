@@ -16,7 +16,22 @@ export function useCheckUsername() {
       }
 
       const result = await response.json();
-      console.log('Moderation result:', result);
+      
+      // Log detailed results
+      if (result.isInappropriate) {
+        console.warn('Username flagged as inappropriate:', {
+          username,
+          flaggedCategories: Object.entries(result.categories)
+            .filter(([_, value]) => value)
+            .map(([key]) => key),
+          topScores: Object.entries(result.scores)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 3)
+            .map(([key, value]) => `${key}: ${(value * 100).toFixed(2)}%`)
+        });
+      } else {
+        console.log('Username passed moderation check:', username);
+      }
       
       return result;
     } catch (error) {

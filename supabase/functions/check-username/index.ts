@@ -14,6 +14,7 @@ serve(async (req) => {
 
   try {
     const { username } = await req.json()
+    console.log('Received username for moderation:', username)
 
     const response = await fetch('https://api.openai.com/v1/moderations', {
       method: 'POST',
@@ -27,9 +28,24 @@ serve(async (req) => {
     })
 
     const data = await response.json()
+    console.log('OpenAI API Response:', JSON.stringify(data, null, 2))
     
     // If any category is flagged, the username is inappropriate
     const isInappropriate = data.results[0].flagged
+    const categories = data.results[0].categories
+    const scores = data.results[0].category_scores
+
+    console.log('Moderation result:', {
+      username,
+      isInappropriate,
+      flaggedCategories: Object.entries(categories)
+        .filter(([_, value]) => value)
+        .map(([key]) => key),
+      highestScores: Object.entries(scores)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3)
+        .map(([key, value]) => `${key}: ${(value * 100).toFixed(2)}%`)
+    })
 
     return new Response(
       JSON.stringify({ 
@@ -43,6 +59,7 @@ serve(async (req) => {
       },
     )
   } catch (error) {
+    console.error('Error in moderation:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
