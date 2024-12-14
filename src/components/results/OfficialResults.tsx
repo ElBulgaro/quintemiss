@@ -72,7 +72,7 @@ export function OfficialResults() {
           return rankA - rankB;
         }
         
-        // If ranks are equal, sort by region
+        // If ranks are equal, sort by region as a secondary sort
         return a.region.localeCompare(b.region);
       });
     },
