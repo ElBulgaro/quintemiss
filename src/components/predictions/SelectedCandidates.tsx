@@ -1,3 +1,5 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
@@ -21,7 +23,7 @@ interface SelectedCandidatesProps {
   selectedCandidates: string[];
   onDragEnd: (event: any) => void;
   onCandidateSelect: (id: string) => void;
-  onSubmit: () => void;
+  onSubmit: () => Promise<boolean>;
   onClearData: () => void;
   isSubmitting: boolean;
 }
@@ -34,6 +36,7 @@ export const SelectedCandidates = ({
   onClearData,
   isSubmitting,
 }: SelectedCandidatesProps) => {
+  const navigate = useNavigate();
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   
