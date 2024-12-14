@@ -82,7 +82,13 @@ export const usePredictions = () => {
         .select('id')
         .single();
 
-      if (predictionError) throw predictionError;
+      if (predictionError) {
+        if (predictionError.message.includes('rate limit')) {
+          toast.error("Trop de soumissions. Veuillez attendre une minute.");
+          return false;
+        }
+        throw predictionError;
+      }
 
       // Create prediction items
       const predictionItems = selectedCandidates.map((candidateId, index) => ({
@@ -97,7 +103,20 @@ export const usePredictions = () => {
 
       if (itemsError) throw itemsError;
 
-      // The score will be calculated automatically by the database trigger
+      // Trigger async score calculation
+      const response = await fetch('/functions/v1/calculate-scores', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ user_id: user.id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to trigger score calculation');
+      }
+
       toast.success("🎉 Prédictions enregistrées!", {
         description: "Rendez-vous sur le leaderboard pour voir votre classement!"
       });
