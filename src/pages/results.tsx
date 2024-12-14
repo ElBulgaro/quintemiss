@@ -39,7 +39,7 @@ export default function Results() {
       className="flex items-center justify-between w-full py-2 text-left"
       onClick={onClick}
     >
-      <h2 className="text-xl font-playfair font-bold text-rich-black">{title}</h2>
+      <span className="text-xl font-playfair font-bold text-rich-black">{title}</span>
       {isOpen ? (
         <ChevronUp className="h-5 w-5 text-rich-black/60" />
       ) : (
