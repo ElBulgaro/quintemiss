@@ -54,9 +54,9 @@ export default function Results() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="container py-8 space-y-8"
+      className="container py-8"
     >
-      <h1 className="text-4xl font-playfair font-bold text-rich-black">Résultats</h1>
+      <h1 className="text-4xl font-playfair font-bold text-rich-black mb-8">Résultats</h1>
       
       <div className={`grid gap-8 ${isMobile ? '' : 'lg:grid-cols-2'}`}>
         <div className="space-y-8">
@@ -64,42 +64,42 @@ export default function Results() {
             <>
               <Collapsible
                 open={openSections.scoreExplanation}
-                className="border rounded-lg p-4"
+                className="space-y-4"
               >
                 <SectionHeader
                   title="Système de Points"
                   isOpen={openSections.scoreExplanation}
                   onClick={() => toggleSection('scoreExplanation')}
                 />
-                <CollapsibleContent className="pt-4">
+                <CollapsibleContent>
                   <ScoreExplanation />
                 </CollapsibleContent>
               </Collapsible>
 
               <Collapsible
                 open={openSections.officialResults}
-                className="border rounded-lg p-4"
+                className="space-y-4"
               >
                 <SectionHeader
                   title="Résultats Officiels"
                   isOpen={openSections.officialResults}
                   onClick={() => toggleSection('officialResults')}
                 />
-                <CollapsibleContent className="pt-4">
+                <CollapsibleContent>
                   <OfficialResults />
                 </CollapsibleContent>
               </Collapsible>
 
               <Collapsible
                 open={openSections.leaderboard}
-                className="border rounded-lg p-4"
+                className="space-y-4"
               >
                 <SectionHeader
                   title="Classement"
                   isOpen={openSections.leaderboard}
                   onClick={() => toggleSection('leaderboard')}
                 />
-                <CollapsibleContent className="pt-4">
+                <CollapsibleContent>
                   <Leaderboard />
                 </CollapsibleContent>
               </Collapsible>
