@@ -1,5 +1,7 @@
 import { Card } from "@/components/ui/card";
 import type { Candidate } from "@/data/types";
+import { Tooltip } from "@/components/ui/tooltip";
+import { TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CandidateResultCardProps {
   candidate: Candidate;
@@ -14,6 +16,32 @@ export function CandidateResultCard({
   points, 
   ranking 
 }: CandidateResultCardProps) {
+  const getPointsBreakdown = (ranking: string, points: number) => {
+    const breakdown = [];
+    
+    // Top 15 points
+    if (['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5', 'top15'].includes(ranking)) {
+      breakdown.push('+10');
+    }
+    
+    // Top 5 points
+    if (['miss_france', '1ere_dauphine', '2eme_dauphine', '3eme_dauphine', '4eme_dauphine', 'top5'].includes(ranking)) {
+      breakdown.push('+20');
+    }
+    
+    // Position points (50)
+    if (points >= 50) {
+      breakdown.push('+50');
+    }
+    
+    // Winner bonus (additional 50)
+    if (ranking === 'miss_france' && points >= 130) {
+      breakdown.push('+50');
+    }
+    
+    return breakdown.join(' ');
+  };
+
   return (
     <Card 
       className={`p-4 transition-all ${
@@ -44,7 +72,23 @@ export function CandidateResultCard({
         </div>
         {isSelected && points > 0 && (
           <div className="text-right">
-            <p className="text-lg font-bold text-gold">+{points}</p>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <p className="text-lg font-bold text-gold">
+                    {getPointsBreakdown(candidate.ranking || 'inconnu', points)} → +{points}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">
+                    Top 15: +10 pts<br />
+                    Top 5: +20 pts<br />
+                    Position exacte: +50 pts<br />
+                    {candidate.ranking === 'miss_france' && 'Bonus gagnante: +50 pts'}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <p className="text-sm text-muted-foreground">points</p>
           </div>
         )}
