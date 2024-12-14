@@ -63,7 +63,7 @@ export function OfficialResults() {
         throw error;
       }
 
-      // Sort candidates based on their ranking and region
+      // Create a new array to avoid mutating the original data
       const sortedData = [...(data || [])].sort((a, b) => {
         const rankA = getRankingOrder(a.ranking);
         const rankB = getRankingOrder(b.ranking);
@@ -77,9 +77,12 @@ export function OfficialResults() {
         return a.region.localeCompare(b.region);
       });
 
+      console.log('Raw candidates data:', data);
       console.log('Sorted candidates:', sortedData);
       return sortedData;
     },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    cacheTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
   });
 
   const getPointsForCandidate = (candidateId: string, ranking: string) => {
