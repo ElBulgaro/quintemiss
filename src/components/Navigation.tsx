@@ -63,6 +63,7 @@ export function Navigation() {
         setIsAuthenticated(false);
         setUsername(null);
         setIsAdmin(false);
+        navigate('/login');
       } else if (session?.user) {
         fetchUserProfile(session.user.id);
       }
@@ -71,18 +72,18 @@ export function Navigation() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [fetchUserProfile]);
+  }, [fetchUserProfile, navigate]);
 
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      localStorage.removeItem('user');
-      localStorage.removeItem('predictions');
       setIsAuthenticated(false);
       setUsername(null);
       setIsAdmin(false);
+      localStorage.removeItem('user');
+      localStorage.removeItem('predictions');
       toast.success("Déconnexion réussie");
-      navigate("/");
+      navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
       toast.error("Erreur lors de la déconnexion");
