@@ -25,9 +25,9 @@ export function useCheckUsername() {
             .filter(([_, value]) => value)
             .map(([key]) => key),
           topScores: Object.entries(result.scores)
-            .sort(([, a], [, b]) => b - a)
+            .sort(([, a], [, b]) => Number(b) - Number(a))
             .slice(0, 3)
-            .map(([key, value]) => `${key}: ${(value * 100).toFixed(2)}%`)
+            .map(([key, value]) => `${key}: ${(Number(value) * 100).toFixed(2)}%`)
         });
       } else {
         console.log('Username passed moderation check:', username);
