@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useCheckUsername } from "@/hooks/use-check-username";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,7 +13,6 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const { checkUsername } = useCheckUsername();
 
   const validatePassword = (value: string) => {
     if (value.length < 6) {
@@ -40,14 +38,6 @@ export default function Login() {
       const predictions = savedPredictions ? JSON.parse(savedPredictions) : [];
 
       if (isSignUp) {
-        // Check for inappropriate username
-        const { isInappropriate, categories } = await checkUsername(username);
-        if (isInappropriate) {
-          toast.error("Ce nom d'utilisateur n'est pas approprié");
-          setIsLoading(false);
-          return;
-        }
-
         // Check if user exists in profiles, case-insensitive
         const { data: existingUsers } = await supabase
           .from('profiles')
