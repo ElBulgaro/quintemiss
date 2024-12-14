@@ -4,67 +4,29 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
 export function OfficialResults() {
-  // Fetch current user's session
-  const { data: session } = useQuery({
-    queryKey: ['current-session'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      return session;
-    },
-  });
-
-  // Fetch user's score and rank
-  const { data: userScore } = useQuery({
-    queryKey: ['user-score', session?.user?.id],
-    enabled: !!session?.user?.id,
-    queryFn: async () => {
-      console.log('Fetching score for user:', session?.user?.id);
-      const { data, error } = await supabase
-        .from('scores')
-        .select('score, perfect_match')
-        .eq('user_id', session?.user?.id)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch user's rank
-  const { data: userRank } = useQuery({
-    queryKey: ['user-rank', session?.user?.id, userScore?.score],
-    enabled: !!session?.user?.id && userScore?.score !== undefined,
-    queryFn: async () => {
-      console.log('Calculating rank for user:', session?.user?.id);
-      const { count, error } = await supabase
-        .from('scores')
-        .select('*', { count: 'exact', head: true })
-        .gt('score', userScore?.score || 0);
-
-      if (error) throw error;
-      return (count || 0) + 1;
-    },
-  });
-
-  // Fetch user's predictions
   const { data: userPredictions } = useQuery({
-    queryKey: ['user-predictions', session?.user?.id],
-    enabled: !!session?.user?.id,
+    queryKey: ['user-predictions'],
     queryFn: async () => {
-      console.log('Fetching predictions for user:', session?.user?.id);
+      console.log('Fetching user predictions...');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
       const { data, error } = await supabase
         .from('predictions')
         .select('*')
-        .eq('user_id', session?.user?.id)
+        .eq('user_id', session.user.id)
         .order('submitted_at', { ascending: false })
         .limit(1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching predictions:', error);
+        throw error;
+      }
+      console.log('User predictions:', data?.[0]);
       return data?.[0] || null;
     },
   });
 
-  // Fetch candidates with their rankings
   const { data: candidates, isLoading } = useQuery({
     queryKey: ['sheet-candidates'],
     queryFn: async () => {
@@ -74,8 +36,12 @@ export function OfficialResults() {
         .select('*')
         .order('region');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching candidates:', error);
+        throw error;
+      }
 
+      // Sort candidates based on their ranking
       return (data || []).sort((a, b) => {
         const rankOrder = {
           'miss_france': 1,
@@ -160,21 +126,6 @@ export function OfficialResults() {
 
   return (
     <div className="space-y-6">
-      {session?.user && userScore && (
-        <Card className="p-4 bg-gold/5 border-gold">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-rich-black">Votre score</p>
-              <p className="text-sm text-rich-black/60">Position #{userRank}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-rich-black">{userScore.score}</p>
-              <p className="text-sm text-rich-black/60">points</p>
-            </div>
-          </div>
-        </Card>
-      )}
-
       <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
         <Trophy className="h-6 w-6 text-gold" />
         Résultats Officiels Miss France 2025
@@ -182,8 +133,8 @@ export function OfficialResults() {
 
       <div className="space-y-4">
         {candidates?.map((candidate) => {
-          const isSelected = userPredictions?.predictions?.includes(candidate.id);
           const points = getPointsForCandidate(candidate.id, candidate.ranking || 'inconnu');
+          const isSelected = userPredictions?.predictions?.includes(candidate.id);
           const ranking = getRankingDisplay(candidate.ranking || 'inconnu');
           
           return (
