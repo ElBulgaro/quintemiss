@@ -116,7 +116,7 @@ export function Leaderboard() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-rich-black flex items-center gap-2">
+      <h2 className="hidden sm:flex text-2xl font-bold text-rich-black items-center gap-2">
         <Trophy className="h-6 w-6 text-gold" />
         Classement Joueurs
       </h2>
