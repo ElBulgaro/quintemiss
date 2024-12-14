@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { ResultsHeader } from "./ResultsHeader";
 import { CandidateResultCard } from "./CandidateResultCard";
 import { getRankingOrder } from "@/utils/rankingOrder";
 
@@ -117,7 +116,6 @@ export function OfficialResults() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <ResultsHeader />
         <Card className="p-6">
           <p className="text-center text-rich-black/60">
             Chargement des résultats...
@@ -129,7 +127,6 @@ export function OfficialResults() {
 
   return (
     <div className="space-y-6">
-      <ResultsHeader />
       <div className="space-y-4">
         {candidates?.map((candidate) => {
           const isSelected = userPredictions?.predictions?.includes(candidate.id);
