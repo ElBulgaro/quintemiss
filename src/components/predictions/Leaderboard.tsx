@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 import { Trophy } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -87,17 +87,18 @@ export function Leaderboard() {
       console.log('Calculating user rank...');
       if (!userScore?.score) return "N/A";
 
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('scores')
-        .select('*', { count: 'exact', head: true })
-        .gt('score', userScore.score);
+        .select('*')
+        .gt('score', userScore.score)
+        .count();
 
       if (error) {
         console.error('Error calculating rank:', error);
         throw error;
       }
 
-      const rank = (count || 0) + 1;
+      const rank = (data?.count || 0) + 1;
       console.log('User rank:', rank);
       return rank;
     },
