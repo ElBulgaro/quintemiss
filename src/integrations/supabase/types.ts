@@ -241,6 +241,12 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_points_from_ranking_backup_20240314: {
+        Args: {
+          ranking: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

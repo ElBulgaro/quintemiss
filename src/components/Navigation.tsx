@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { toast } from "sonner";
@@ -33,56 +33,45 @@ export function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username, is_admin')
+      .eq('id', userId)
+      .single();
+    
+    if (profile) {
+      setIsAuthenticated(true);
+      setUsername(profile.username);
+      setIsAdmin(profile.is_admin || false);
+    } else {
+      handleLogout();
+    }
+  }, []);
+
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username, is_admin')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profile) {
-          setIsAuthenticated(true);
-          setUsername(profile.username);
-          setIsAdmin(profile.is_admin || false);
-        } else {
-          handleLogout();
-        }
-      } else {
-        setIsAuthenticated(false);
-        setUsername(null);
-        setIsAdmin(false);
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchUserProfile(session.user.id);
       }
-    };
+    });
 
-    checkAuth();
-
+    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
         setUsername(null);
         setIsAdmin(false);
-      } else if (session) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username, is_admin')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profile) {
-          setIsAuthenticated(true);
-          setUsername(profile.username);
-          setIsAdmin(profile.is_admin || false);
-        }
+      } else if (session?.user) {
+        fetchUserProfile(session.user.id);
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchUserProfile]);
 
   const handleLogout = async () => {
     try {

@@ -10,7 +10,16 @@ import Predictions from "./pages/predictions";
 import Candidates from "./pages/candidates";
 import Results from "./pages/results";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // Data stays fresh for 1 minute
+      cacheTime: 1000 * 60 * 5, // Cache persists for 5 minutes
+      retry: 1, // Only retry failed requests once
+      refetchOnWindowFocus: false, // Don't refetch on window focus
+    },
+  },
+});
 
 const AnimatedRoutes = () => {
   const location = useLocation();
