@@ -87,18 +87,17 @@ export function Leaderboard() {
       console.log('Calculating user rank...');
       if (!userScore?.score) return "N/A";
 
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from('scores')
-        .select('*')
-        .gt('score', userScore.score)
-        .count();
+        .select('*', { count: 'exact', head: true })
+        .gt('score', userScore.score);
 
       if (error) {
         console.error('Error calculating rank:', error);
         throw error;
       }
 
-      const rank = (data?.count || 0) + 1;
+      const rank = (count || 0) + 1;
       console.log('User rank:', rank);
       return rank;
     },
