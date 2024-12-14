@@ -66,13 +66,11 @@ export default function Predictions() {
     if (!isAuthenticated) {
       toast.error("Veuillez vous connecter pour soumettre vos prédictions");
       navigate('/login');
-      return;
+      return false;
     }
 
     const success = await savePredictions();
-    if (success) {
-      setTimeout(() => navigate("/leaderboard"), 2000);
-    }
+    return success;
   };
 
   return (
