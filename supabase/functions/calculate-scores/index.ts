@@ -22,6 +22,8 @@ serve(async (req) => {
       throw new Error('User ID is required')
     }
 
+    console.log(`Calculating score for user ${user_id}`)
+
     // Get user's prediction
     const { data: prediction, error: predictionError } = await supabase
       .from('predictions')
@@ -84,7 +86,9 @@ serve(async (req) => {
       totalScore += 200
     }
 
-    // Update score
+    console.log(`Score calculated for user ${user_id}: ${totalScore} points (Perfect match: ${perfectMatch})`)
+
+    // Update score using upsert
     const { error: scoreError } = await supabase
       .from('scores')
       .upsert({
@@ -101,6 +105,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error) {
+    console.error('Error calculating score:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
