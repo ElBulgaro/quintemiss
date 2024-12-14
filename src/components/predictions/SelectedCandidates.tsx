@@ -5,6 +5,7 @@ import { SortableCandidate } from "@/components/SortableCandidate";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ShareButton } from "./ShareButton";
 
 interface SelectedCandidatesProps {
   selectedCandidates: string[];
@@ -62,13 +63,16 @@ export const SelectedCandidates = ({
     <div className="rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl md:text-2xl font-bold text-rich-black">Votre Top 5</h2>
-        <Button
-          onClick={onClearData}
-          variant="outline"
-          className="text-sm"
-        >
-          Tout effacer
-        </Button>
+        <div className="flex items-center gap-2">
+          <ShareButton selectedCandidates={selectedCandidates} />
+          <Button
+            onClick={onClearData}
+            variant="outline"
+            className="text-sm"
+          >
+            Tout effacer
+          </Button>
+        </div>
       </div>
       <DndContext
         sensors={sensors}
