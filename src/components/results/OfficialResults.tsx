@@ -34,7 +34,7 @@ export function OfficialResults() {
       return data?.[0] || null;
     },
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache the data
+    gcTime: 0, // Don't cache the data (formerly cacheTime)
   });
 
   const { data: candidates, isLoading } = useQuery({
