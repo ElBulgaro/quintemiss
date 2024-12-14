@@ -126,22 +126,24 @@ export function OfficialResults() {
   }
 
   return (
-    <div className="space-y-4">
-      {candidates?.map((candidate) => {
-        const isSelected = userPredictions?.predictions?.includes(candidate.id);
-        const points = getPointsForCandidate(candidate.id, candidate.ranking || 'inconnu');
-        const ranking = getRankingDisplay(candidate.ranking || 'inconnu');
-        
-        return (
-          <CandidateResultCard
-            key={candidate.id}
-            candidate={candidate}
-            isSelected={isSelected}
-            points={points}
-            ranking={ranking}
-          />
-        );
-      })}
+    <div className="space-y-6">
+      <div className="space-y-4">
+        {candidates?.map((candidate) => {
+          const isSelected = userPredictions?.predictions?.includes(candidate.id);
+          const points = getPointsForCandidate(candidate.id, candidate.ranking || 'inconnu');
+          const ranking = getRankingDisplay(candidate.ranking || 'inconnu');
+          
+          return (
+            <CandidateResultCard
+              key={candidate.id}
+              candidate={candidate}
+              isSelected={isSelected}
+              points={points}
+              ranking={ranking}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

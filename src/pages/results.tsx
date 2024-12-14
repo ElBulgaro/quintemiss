@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { OfficialResults } from "@/components/results/OfficialResults";
 import { Leaderboard } from "@/components/predictions/Leaderboard";
 import { ScoreExplanation } from "@/components/results/ScoreExplanation";
+import { Separator } from "@/components/ui/separator";
 import { 
   Collapsible,
   CollapsibleContent,
@@ -39,7 +40,7 @@ export default function Results() {
       className="flex items-center justify-between w-full py-2 text-left"
       onClick={onClick}
     >
-      <span className="text-xl font-playfair font-bold text-rich-black">{title}</span>
+      <h2 className="text-xl font-playfair font-bold text-rich-black">{title}</h2>
       {isOpen ? (
         <ChevronUp className="h-5 w-5 text-rich-black/60" />
       ) : (
@@ -80,7 +81,7 @@ export default function Results() {
                 className="space-y-4"
               >
                 <SectionHeader
-                  title="Résultats Officiels Miss France 2025"
+                  title="Résultats Officiels"
                   isOpen={openSections.officialResults}
                   onClick={() => toggleSection('officialResults')}
                 />
