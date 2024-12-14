@@ -104,17 +104,12 @@ export const usePredictions = () => {
       if (itemsError) throw itemsError;
 
       // Trigger async score calculation
-      const response = await fetch('/functions/v1/calculate-scores', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ user_id: user.id }),
+      const { error: scoreError } = await supabase.functions.invoke('calculate-scores', {
+        body: { user_id: user.id }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to trigger score calculation');
+      if (scoreError) {
+        console.error('Error calculating scores:', scoreError);
       }
 
       toast.success("🎉 Prédictions enregistrées!", {
