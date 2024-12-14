@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { OfficialResults } from "@/components/results/OfficialResults";
 import { Leaderboard } from "@/components/predictions/Leaderboard";
 import { ScoreExplanation } from "@/components/results/ScoreExplanation";
-import { Separator } from "@/components/ui/separator";
 import { 
   Collapsible,
   CollapsibleContent,
@@ -81,7 +80,7 @@ export default function Results() {
                 className="space-y-4"
               >
                 <SectionHeader
-                  title="Résultats Officiels"
+                  title="Résultats Officiels Miss France 2025"
                   isOpen={openSections.officialResults}
                   onClick={() => toggleSection('officialResults')}
                 />
