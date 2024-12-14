@@ -6,6 +6,16 @@ import { CountdownTimer } from "@/components/CountdownTimer";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ShareButton } from "./ShareButton";
+import { Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface SelectedCandidatesProps {
   selectedCandidates: string[];
@@ -24,6 +34,9 @@ export const SelectedCandidates = ({
   onClearData,
   isSubmitting,
 }: SelectedCandidatesProps) => {
+  const [showClearDialog, setShowClearDialog] = useState(false);
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -59,19 +72,75 @@ export const SelectedCandidates = ({
     return null;
   };
 
+  const handleSubmit = async () => {
+    const success = await onSubmit();
+    if (success) {
+      setShowSubmitDialog(true);
+    }
+  };
+
+  const generatePredictionText = () => {
+    if (selectedCandidates.length !== 5) return "";
+
+    const positions = selectedCandidates.map((id, index) => {
+      const candidate = candidates.find(c => c.id === id);
+      if (!candidate) return "";
+      
+      const position = index === 0 
+        ? "👑 Miss France 2025"
+        : index === 1 
+          ? "2️⃣ 1ere Dauphine"
+          : index === 2 
+            ? "3️⃣ 2eme Dauphine"
+            : index === 3 
+              ? "4️⃣ 3eme Dauphine"
+              : "5️⃣ 4eme Dauphine";
+      
+      return `${position} - ${candidate.region}`;
+    });
+
+    return `Votre Top 5 pour Miss France 2025 :\n\n${positions.join("\n")}`;
+  };
+
   return (
     <div className="rounded-lg">
-      <div className="space-y-4">
+      <div className="space-y-4 md:space-y-0 md:flex md:justify-between md:items-center">
         <h2 className="text-xl md:text-2xl font-bold text-rich-black">Votre Top 5</h2>
         <div className="flex items-center gap-2">
           <ShareButton selectedCandidates={selectedCandidates} />
-          <Button
-            onClick={onClearData}
-            variant="outline"
-            className="text-sm"
-          >
-            Tout effacer
-          </Button>
+          <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-sm hover:bg-destructive hover:text-destructive-foreground"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Tout effacer
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <DialogHeader>
+                <DialogTitle>Effacer la sélection ?</DialogTitle>
+                <DialogDescription>
+                  Cette action effacera votre Top 5 actuel. Cette action ne peut pas être annulée.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowClearDialog(false)}>
+                  Annuler
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => {
+                    onClearData();
+                    setShowClearDialog(false);
+                  }}
+                >
+                  Effacer
+                </Button>
+              </DialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
@@ -100,6 +169,7 @@ export const SelectedCandidates = ({
           </div>
         </SortableContext>
       </DndContext>
+
       {selectedCandidates.length === 0 && (
         <p className="text-center text-rich-black/60 py-8">
           Sélectionnez des candidates dans la liste ci-contre
@@ -111,12 +181,30 @@ export const SelectedCandidates = ({
         </p>
       )}
       <Button
-        onClick={onSubmit}
+        onClick={handleSubmit}
         className="w-full mt-2"
         disabled={selectedCandidates.length !== 5 || isSubmitting}
       >
         {isSubmitting ? "Enregistrement..." : "Valider mes prédictions"}
       </Button>
+
+      <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Prédictions enregistrées avec succès !</DialogTitle>
+            <DialogDescription className="whitespace-pre-wrap">
+              {generatePredictionText()}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center gap-2">
+            <ShareButton selectedCandidates={selectedCandidates} />
+            <Button onClick={() => navigate("/results")}>
+              Voir les résultats
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <CountdownTimer />
     </div>
   );
