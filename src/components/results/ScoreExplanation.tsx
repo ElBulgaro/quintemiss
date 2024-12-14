@@ -4,7 +4,7 @@ import { Trophy, Target, ListOrdered, Crown, Star } from "lucide-react";
 export function ScoreExplanation() {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-playfair font-bold text-rich-black flex items-center gap-2">
+      <h2 className="hidden sm:flex text-2xl font-playfair font-bold text-rich-black items-center gap-2">
         <Target className="h-6 w-6" />
         Système de Points
       </h2>
