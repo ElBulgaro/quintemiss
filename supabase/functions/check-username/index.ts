@@ -42,9 +42,9 @@ serve(async (req) => {
         .filter(([_, value]) => value)
         .map(([key]) => key),
       highestScores: Object.entries(scores)
-        .sort(([, a], [, b]) => b - a)
+        .sort(([, a], [, b]) => Number(b) - Number(a))
         .slice(0, 3)
-        .map(([key, value]) => `${key}: ${(value * 100).toFixed(2)}%`)
+        .map(([key, value]) => `${key}: ${(Number(value) * 100).toFixed(2)}%`)
     })
 
     return new Response(
