@@ -61,7 +61,7 @@ export const SelectedCandidates = ({
 
   return (
     <div className="rounded-lg">
-      <div className="flex justify-between items-center mb-4">
+      <div className="space-y-4">
         <h2 className="text-xl md:text-2xl font-bold text-rich-black">Votre Top 5</h2>
         <div className="flex items-center gap-2">
           <ShareButton selectedCandidates={selectedCandidates} />
@@ -74,6 +74,7 @@ export const SelectedCandidates = ({
           </Button>
         </div>
       </div>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -83,7 +84,7 @@ export const SelectedCandidates = ({
           items={selectedCandidates}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-4">
+          <div className="space-y-4 mt-6">
             {selectedCandidates.map((id, index) => {
               const candidate = candidates.find((c) => c.id === id);
               if (!candidate) return null;
