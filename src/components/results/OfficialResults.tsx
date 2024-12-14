@@ -4,13 +4,19 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
 export function OfficialResults() {
-  const { data: userPredictions } = useQuery({
-    queryKey: ['user-predictions'],
+  const { data: session } = useQuery({
+    queryKey: ['session'],
     queryFn: async () => {
-      console.log('Fetching user predictions...');
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
+      return session;
+    },
+  });
 
+  const { data: userPredictions } = useQuery({
+    queryKey: ['user-predictions', session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      console.log('Fetching user predictions for:', session?.user?.id);
       const { data, error } = await supabase
         .from('predictions')
         .select('*')
