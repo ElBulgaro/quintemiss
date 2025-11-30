@@ -19,20 +19,21 @@ export function SemiFinalistSelection({
   const { isSaving, handleToggleSemiFinalist } = useSemiFinalistRankings();
 
   // Query to check if user is admin
-  const { data: profile, isLoading: isCheckingAdmin } = useQuery({
-    queryKey: ['profile'],
+  const { data: isAdmin, isLoading: isCheckingAdmin } = useQuery({
+    queryKey: ['is-admin'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', user.id)
-        .single();
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
       
       if (error) throw error;
-      return data;
+      return !!data;
     },
   });
 
@@ -42,7 +43,7 @@ export function SemiFinalistSelection({
     const updatedSemiFinalists = await handleToggleSemiFinalist(
       candidateId,
       semiFinalists,
-      !!profile?.is_admin
+      !!isAdmin
     );
 
     if (updatedSemiFinalists) {

@@ -40,7 +40,7 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
       if (!candidate) return "";
       
       const position = index === 0 
-        ? "👑 Miss France 2025"
+        ? "👑 Miss France 2026"
         : index === 1 
           ? "2️⃣ 1ere Dauphine"
           : index === 2 
@@ -52,7 +52,7 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
       return `${position} - ${candidate.region}`;
     });
 
-    return `Voici mon TOP 5 pour Miss France 2025 !\n\n${positions.join("\n")}\n\nFaites vos pronostics sur https://quintemiss.lovable.app/ !`;
+    return `Voici mon TOP 5 pour Miss France 2026 !\n\n${positions.join("\n")}\n\nFaites vos pronostics sur https://quintemiss.lovable.app/ !`;
   };
 
   const handleShare = async () => {

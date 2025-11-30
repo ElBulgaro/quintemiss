@@ -90,19 +90,6 @@ export const usePredictions = () => {
         throw predictionError;
       }
 
-      // Create prediction items
-      const predictionItems = selectedCandidates.map((candidateId, index) => ({
-        prediction_id: prediction.id,
-        candidate_id: candidateId,
-        position: index + 1,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('prediction_items')
-        .insert(predictionItems);
-
-      if (itemsError) throw itemsError;
-
       // Trigger async score calculation
       const { error: scoreError } = await supabase.functions.invoke('calculate-scores', {
         body: { user_id: user.id }

@@ -14,13 +14,14 @@ export default function Index() {
     const checkAdminStatus = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .single();
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
         
-        setIsAdmin(!!profile?.is_admin);
+        setIsAdmin(!!roles);
       }
     };
 
@@ -35,12 +36,12 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-6xl font-bold text-rich-black mb-6">
-              Miss France 2024
+              Miss France 2026
               <br />
               <span className="text-gold">Faites vos jeux</span>
             </h1>
             <p className="text-lg md:text-xl text-rich-black/60 max-w-2xl mx-auto mb-8">
-              Prédisez les 5 finalistes de Miss France 2024 et comparez vos résultats avec ceux des autres participants.
+              Prédisez les 5 finalistes de Miss France 2026 et comparez vos résultats avec ceux des autres participants.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 

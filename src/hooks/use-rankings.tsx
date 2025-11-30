@@ -60,8 +60,8 @@ export function useRankings(candidates: Candidate[]) {
         }
       });
 
-      // Set top 5
-      latestEvent.top_5?.forEach((candidateId: string) => {
+      // Set top 5 from final_ranking
+      latestEvent.final_ranking.slice(0, 5).forEach((candidateId: string) => {
         if (newRankings[candidateId]) {
           newRankings[candidateId].top5 = true;
         }
@@ -134,10 +134,12 @@ export function useRankings(candidates: Candidate[]) {
           : [...latestEvent.semi_finalists, candidateId];
         updatedEvent.semi_finalists = newSemiFinalists;
       } else if (field === 'top5') {
+        const currentTop5 = latestEvent.final_ranking.slice(0, 5);
         const newTop5 = rankings[candidateId].top5
-          ? latestEvent.top_5.filter(id => id !== candidateId)
-          : [...(latestEvent.top_5 || []), candidateId];
-        updatedEvent.top_5 = newTop5;
+          ? currentTop5.filter(id => id !== candidateId)
+          : [...currentTop5, candidateId].slice(0, 5);
+        // Preserve the rest of final_ranking
+        updatedEvent.final_ranking = [...newTop5, ...latestEvent.final_ranking.slice(5)];
       } else {
         // Handle final positions
         const position = ['winner', 'first', 'second', 'third', 'fourth'].indexOf(field);
@@ -182,7 +184,6 @@ export function useRankings(candidates: Candidate[]) {
         .from('official_results')
         .update({
           semi_finalists: [],
-          top_5: [],
           final_ranking: [],
           submitted_at: new Date().toISOString(),
         })
