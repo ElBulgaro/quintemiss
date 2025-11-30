@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-const SHOW_DATE = new Date("2024-12-14T21:00:00+01:00");
+const SHOW_DATE = new Date("2025-12-13T21:00:00+01:00");
 
 export const CountdownTimer = () => {
   const [timeLeft, setTimeLeft] = useState("");

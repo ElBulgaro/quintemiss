@@ -38,14 +38,21 @@ export function Navigation() {
   const fetchUserProfile = useCallback(async (userId: string) => {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('username, is_admin')
+      .select('username')
       .eq('id', userId)
       .single();
+    
+    const { data: roles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .maybeSingle();
     
     if (profile) {
       setIsAuthenticated(true);
       setUsername(profile.username);
-      setIsAdmin(profile.is_admin || false);
+      setIsAdmin(!!roles);
     } else {
       handleLogout();
     }

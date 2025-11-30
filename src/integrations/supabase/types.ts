@@ -14,16 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      official_results: {
+        Row: {
+          created_at: string | null
+          final_ranking: string[] | null
+          id: string
+          semi_finalists: string[] | null
+          submitted_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          final_ranking?: string[] | null
+          id?: string
+          semi_finalists?: string[] | null
+          submitted_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          final_ranking?: string[] | null
+          id?: string
+          semi_finalists?: string[] | null
+          submitted_at?: string | null
+        }
+        Relationships: []
+      }
+      predictions: {
+        Row: {
+          created_at: string | null
+          id: string
+          predictions: string[]
+          submitted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          predictions: string[]
+          submitted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          predictions?: string[]
+          submitted_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      scores: {
+        Row: {
+          id: string
+          perfect_match: boolean | null
+          score: number | null
+          scored_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          perfect_match?: boolean | null
+          score?: number | null
+          scored_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          perfect_match?: boolean | null
+          score?: number | null
+          scored_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sheet_candidates: {
+        Row: {
+          age: number | null
+          bio: string | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          instagram: string | null
+          is_semi_finalist: boolean | null
+          last_synced_at: string | null
+          name: string
+          official_photo_url: string | null
+          portrait_url: string | null
+          ranking: string | null
+          region: string
+        }
+        Insert: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string | null
+          id: string
+          image_url?: string | null
+          instagram?: string | null
+          is_semi_finalist?: boolean | null
+          last_synced_at?: string | null
+          name: string
+          official_photo_url?: string | null
+          portrait_url?: string | null
+          ranking?: string | null
+          region: string
+        }
+        Update: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          instagram?: string | null
+          is_semi_finalist?: boolean | null
+          last_synced_at?: string | null
+          name?: string
+          official_photo_url?: string | null
+          portrait_url?: string | null
+          ranking?: string | null
+          region?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +314,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
