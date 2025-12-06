@@ -6,6 +6,6 @@ type ImageToggleStore = {
 };
 
 export const useImageToggleStore = create<ImageToggleStore>((set) => ({
-  showOfficialPhoto: true,
+  showOfficialPhoto: false,
   toggleImage: () => set((state) => ({ showOfficialPhoto: !state.showOfficialPhoto })),
 }));
