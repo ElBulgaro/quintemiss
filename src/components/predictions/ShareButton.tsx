@@ -1,4 +1,4 @@
-import { Share2, Twitter, Copy } from "lucide-react";
+import { Share2, Twitter, Copy, Image, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,8 +9,9 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
+import { CollagePreview } from "./CollagePreview";
 
 interface ShareButtonProps {
   selectedCandidates: string[];
@@ -18,6 +19,10 @@ interface ShareButtonProps {
 
 export function ShareButton({ selectedCandidates }: ShareButtonProps) {
   const [showDialog, setShowDialog] = useState(false);
+  const [showImageDialog, setShowImageDialog] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const collageRef = useRef<HTMLDivElement>(null);
 
   const { data: candidates = [] } = useQuery({
     queryKey: ['sheet-candidates'],
@@ -31,6 +36,10 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
       return data;
     },
   });
+
+  const selectedCandidatesData = selectedCandidates
+    .map(id => candidates.find(c => c.id === id))
+    .filter(Boolean);
 
   const generateShareText = () => {
     if (selectedCandidates.length !== 5) return "";
@@ -53,6 +62,94 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
     });
 
     return `Voici mon TOP 5 pour Miss France 2026 !\n\n${positions.join("\n")}\n\nFaites vos pronostics sur https://quintemiss.lovable.app/ !`;
+  };
+
+  const handleGenerateImage = async () => {
+    if (selectedCandidates.length !== 5) {
+      toast.error("Veuillez sélectionner 5 candidates");
+      return;
+    }
+
+    setShowImageDialog(true);
+    setIsGenerating(true);
+    setGeneratedImage(null);
+
+    // Wait for the collage to render
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      
+      if (!collageRef.current) {
+        throw new Error("Collage not found");
+      }
+
+      const canvas = await html2canvas(collageRef.current, {
+        scale: 1,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null,
+      });
+
+      const dataUrl = canvas.toDataURL("image/png");
+      setGeneratedImage(dataUrl);
+    } catch (error) {
+      console.error("Error generating image:", error);
+      toast.error("Erreur lors de la génération de l'image");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadImage = () => {
+    if (!generatedImage) return;
+
+    const link = document.createElement("a");
+    link.href = generatedImage;
+    link.download = "mon-top5-miss-france-2026.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Image téléchargée !");
+  };
+
+  const handleCopyImage = async () => {
+    if (!generatedImage) return;
+
+    try {
+      const response = await fetch(generatedImage);
+      const blob = await response.blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob })
+      ]);
+      toast.success("Image copiée !");
+    } catch (error) {
+      toast.error("Erreur lors de la copie");
+    }
+  };
+
+  const handleShareImage = async () => {
+    if (!generatedImage) return;
+
+    try {
+      const response = await fetch(generatedImage);
+      const blob = await response.blob();
+      const file = new File([blob], "mon-top5-miss-france-2026.png", { type: "image/png" });
+
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "Mon TOP 5 Miss France 2026",
+        });
+        toast.success("Partagé avec succès !");
+      } else {
+        handleDownloadImage();
+      }
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") {
+        toast.error("Erreur lors du partage");
+      }
+    }
   };
 
   const handleShare = async () => {
@@ -120,6 +217,10 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={handleGenerateImage}>
+            <Image className="mr-2 h-4 w-4" />
+            Créer une image
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handlePlatformShare("twitter")}>
             <Twitter className="mr-2 h-4 w-4" />
             Twitter
@@ -141,6 +242,7 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Text share dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
@@ -152,6 +254,53 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
               <Copy className="mr-2 h-4 w-4" />
               Copier le texte
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image generation dialog */}
+      <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Mon Top 5 en image</DialogTitle>
+          </DialogHeader>
+          
+          {/* Hidden collage for capture */}
+          <div className="absolute -left-[9999px] overflow-hidden">
+            <CollagePreview ref={collageRef} candidates={selectedCandidatesData} />
+          </div>
+
+          <div className="space-y-4">
+            {isGenerating ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="mt-4 text-sm text-muted-foreground">Génération en cours...</p>
+              </div>
+            ) : generatedImage ? (
+              <>
+                <div className="overflow-hidden rounded-lg border">
+                  <img 
+                    src={generatedImage} 
+                    alt="Mon Top 5 Miss France 2026" 
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleDownloadImage} className="flex-1">
+                    <Download className="mr-2 h-4 w-4" />
+                    Télécharger
+                  </Button>
+                  <Button onClick={handleCopyImage} variant="outline" className="flex-1">
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copier
+                  </Button>
+                  <Button onClick={handleShareImage} variant="outline" className="flex-1">
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Partager
+                  </Button>
+                </div>
+              </>
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>
