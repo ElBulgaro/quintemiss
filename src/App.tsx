@@ -9,6 +9,7 @@ import Login from "./pages/login";
 import Predictions from "./pages/predictions";
 import Candidates from "./pages/candidates";
 import Results from "./pages/results";
+import ProcessImages from "./pages/process-images";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +34,7 @@ const AnimatedRoutes = () => {
         <Route path="/candidates" element={<Candidates />} />
         <Route path="/results" element={<Results />} />
         <Route path="/leaderboard" element={<Navigate to="/results" replace />} />
+        <Route path="/process-images" element={<ProcessImages />} />
       </Routes>
     </AnimatePresence>
   );
