@@ -122,6 +122,7 @@ export type Database = {
           portrait_url: string | null
           ranking: string | null
           region: string
+          transparent_photo_url: string | null
         }
         Insert: {
           age?: number | null
@@ -137,6 +138,7 @@ export type Database = {
           portrait_url?: string | null
           ranking?: string | null
           region: string
+          transparent_photo_url?: string | null
         }
         Update: {
           age?: number | null
@@ -152,6 +154,7 @@ export type Database = {
           portrait_url?: string | null
           ranking?: string | null
           region?: string
+          transparent_photo_url?: string | null
         }
         Relationships: []
       }
