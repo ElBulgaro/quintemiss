@@ -36,9 +36,7 @@ let segmenterInstance: any = null;
 async function getSegmenter() {
   if (!segmenterInstance) {
     console.log('🔄 Loading segmentation model (first time only)...');
-    segmenterInstance = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
-      device: 'webgpu',
-    });
+    segmenterInstance = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512');
     console.log('✅ Model loaded!');
   }
   return segmenterInstance;
