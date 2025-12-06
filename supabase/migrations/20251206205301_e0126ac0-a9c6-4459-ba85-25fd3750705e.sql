@@ -1,0 +1,1 @@
+ALTER TABLE sheet_candidates ADD COLUMN transparent_photo_url TEXT;
