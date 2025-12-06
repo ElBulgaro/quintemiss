@@ -1,1 +1,4 @@
 project_id = "hubucropejpsxbrlslpa"
+
+[functions.upload-candidate-images]
+verify_jwt = false
