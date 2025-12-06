@@ -1,19 +1,16 @@
-import { Share2, Twitter, Copy, Image, Download } from "lucide-react";
+import { Share2, Twitter, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
-import { CollageCanvas } from "./CollageCanvas";
 
 interface ShareButtonProps {
   selectedCandidates: string[];
@@ -21,9 +18,6 @@ interface ShareButtonProps {
 
 export function ShareButton({ selectedCandidates }: ShareButtonProps) {
   const [showDialog, setShowDialog] = useState(false);
-  const [showCollageDialog, setShowCollageDialog] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const collageRef = useRef<HTMLDivElement>(null);
 
   const { data: candidates = [] } = useQuery({
     queryKey: ['sheet-candidates'],
@@ -37,10 +31,6 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
       return data;
     },
   });
-
-  const selectedCandidateData = selectedCandidates
-    .map(id => candidates.find(c => c.id === id))
-    .filter(Boolean) as typeof candidates;
 
   const generateShareText = () => {
     if (selectedCandidates.length !== 5) return "";
@@ -63,140 +53,6 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
     });
 
     return `Voici mon TOP 5 pour Miss France 2026 !\n\n${positions.join("\n")}\n\nFaites vos pronostics sur https://quintemiss.lovable.app/ !`;
-  };
-
-  const generateCanvas = useCallback(async (): Promise<HTMLCanvasElement | null> => {
-    if (!collageRef.current) return null;
-    
-    try {
-      const canvas = await html2canvas(collageRef.current, {
-        useCORS: true,
-        allowTaint: true,
-        scale: 2,
-        backgroundColor: null,
-      });
-      return canvas;
-    } catch (error) {
-      console.error("Error generating canvas:", error);
-      return null;
-    }
-  }, []);
-
-  const handleCopyImage = async () => {
-    if (selectedCandidates.length !== 5) {
-      toast.error("Veuillez sélectionner 5 candidates");
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const canvas = await generateCanvas();
-      if (!canvas) throw new Error("Failed to generate image");
-
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          toast.error("Erreur lors de la génération");
-          return;
-        }
-
-        try {
-          await navigator.clipboard.write([
-            new ClipboardItem({ "image/png": blob })
-          ]);
-          toast.success("Image copiée dans le presse-papier !");
-          setShowCollageDialog(false);
-        } catch (error) {
-          // Fallback: download instead
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "mon-top5-missfrande2026.png";
-          a.click();
-          URL.revokeObjectURL(url);
-          toast.success("Image téléchargée !");
-          setShowCollageDialog(false);
-        }
-      }, "image/png");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de la génération de l'image");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleDownloadImage = async () => {
-    if (selectedCandidates.length !== 5) {
-      toast.error("Veuillez sélectionner 5 candidates");
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const canvas = await generateCanvas();
-      if (!canvas) throw new Error("Failed to generate image");
-
-      const url = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "mon-top5-missfrance2026.png";
-      a.click();
-      toast.success("Image téléchargée !");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors du téléchargement");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleShareImage = async () => {
-    if (selectedCandidates.length !== 5) {
-      toast.error("Veuillez sélectionner 5 candidates");
-      return;
-    }
-
-    if (!navigator.share || !navigator.canShare) {
-      setShowCollageDialog(true);
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const canvas = await generateCanvas();
-      if (!canvas) throw new Error("Failed to generate image");
-
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          toast.error("Erreur lors de la génération");
-          return;
-        }
-
-        const file = new File([blob], "mon-top5-missfrance2026.png", { type: "image/png" });
-        
-        if (navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: "Mon Top 5 Miss France 2026",
-              text: "Voici mon Top 5 pour Miss France 2026 !",
-            });
-            toast.success("Partagé avec succès !");
-          } catch (error) {
-            if ((error as Error).name !== "AbortError") {
-              setShowCollageDialog(true);
-            }
-          }
-        } else {
-          setShowCollageDialog(true);
-        }
-      }, "image/png");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors du partage");
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   const handleShare = async () => {
@@ -254,14 +110,6 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
     }
   };
 
-  const openCollageDialog = () => {
-    if (selectedCandidates.length !== 5) {
-      toast.error("Veuillez sélectionner 5 candidates");
-      return;
-    }
-    setShowCollageDialog(true);
-  };
-
   return (
     <>
       <DropdownMenu>
@@ -272,11 +120,6 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={openCollageDialog}>
-            <Image className="mr-2 h-4 w-4" />
-            Créer une image
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => handlePlatformShare("twitter")}>
             <Twitter className="mr-2 h-4 w-4" />
             Twitter
@@ -289,16 +132,15 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleShare}>
             <Share2 className="mr-2 h-4 w-4" />
-            Partager le texte...
+            Partager...
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleCopy}>
             <Copy className="mr-2 h-4 w-4" />
-            Copier le texte
+            Copier le Top 5
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Text Share Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
@@ -310,69 +152,6 @@ export function ShareButton({ selectedCandidates }: ShareButtonProps) {
               <Copy className="mr-2 h-4 w-4" />
               Copier le texte
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Collage Dialog */}
-      <Dialog open={showCollageDialog} onOpenChange={setShowCollageDialog}>
-        <DialogContent className="max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Mon Top 5 - Image</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4">
-            {/* Collage Preview - Hidden for capture, visible preview shown below */}
-            <div className="absolute -left-[9999px]">
-              <CollageCanvas ref={collageRef} candidates={selectedCandidateData} />
-            </div>
-            
-            {/* Visible Preview */}
-            <div className="overflow-hidden rounded-lg shadow-lg border max-w-[320px]">
-              <div className="w-[270px] h-[337px] bg-gradient-to-br from-rose-900 via-pink-800 to-amber-700 p-3 flex flex-col">
-                <div className="text-center mb-2">
-                  <h2 className="text-lg font-bold text-white">Mon Top 5</h2>
-                  <p className="text-amber-200 text-xs">Miss France 2026</p>
-                </div>
-                <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                  {selectedCandidateData.slice(0, 1).map((c) => (
-                    <div key={c.id} className="w-16 h-20 rounded overflow-hidden border-2 border-amber-300">
-                      <img src={c.image_url || "/placeholder.svg"} alt={c.region} className="w-full h-full object-cover" />
-                    </div>
-                  ))}
-                  <div className="flex gap-2">
-                    {selectedCandidateData.slice(1, 3).map((c) => (
-                      <div key={c.id} className="w-12 h-16 rounded overflow-hidden border border-white/60">
-                        <img src={c.image_url || "/placeholder.svg"} alt={c.region} className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    {selectedCandidateData.slice(3, 5).map((c) => (
-                      <div key={c.id} className="w-10 h-14 rounded overflow-hidden border border-white/40">
-                        <img src={c.image_url || "/placeholder.svg"} alt={c.region} className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <p className="text-white/60 text-[8px] text-center">quintemiss.lovable.app</p>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Button onClick={handleCopyImage} disabled={isGenerating} className="gap-2">
-                <Copy className="h-4 w-4" />
-                {isGenerating ? "Génération..." : "Copier l'image"}
-              </Button>
-              <Button onClick={handleDownloadImage} disabled={isGenerating} variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Télécharger
-              </Button>
-              <Button onClick={handleShareImage} disabled={isGenerating} variant="outline" className="gap-2">
-                <Share2 className="h-4 w-4" />
-                Partager
-              </Button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
